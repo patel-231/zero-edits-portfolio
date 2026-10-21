@@ -1,0 +1,8 @@
+{
+  "name": "CineVault - Video Editing Portfolio & Platform",
+  "description": "YouTube-inspired video editing portfolio showcasing vertical Shorts, cinematic commercial edits, and long-form video projects with secure admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

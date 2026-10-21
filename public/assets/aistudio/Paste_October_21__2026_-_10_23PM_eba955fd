@@ -1,0 +1,906 @@
+# MASTER PROMPT — YouTube-Inspired Video Editing Portfolio with Secure Admin Dashboard
+
+## 1. Your Role
+
+Act as a senior full-stack developer, UI/UX designer, video platform architect, and application security engineer.
+
+Build a complete, production-ready, responsive video-editing portfolio website that feels like a modern video-sharing platform inspired by YouTube. It must showcase both vertical Shorts and long-form video projects while presenting me as a professional video editor and helping me attract clients.
+
+This must be a functional website, not just a UI mockup or landing page.
+
+**Required deployment workflow:** Google AI Studio → GitHub → Vercel.
+
+Use a modern, maintainable stack compatible with Vercel. Prefer Next.js App Router, TypeScript, Tailwind CSS, and a suitable backend such as Supabase for authentication, database and storage.
+
+Do not stop after generating the homepage. Implement the complete website, backend integration, admin dashboard, authentication, data models, responsive layouts, and deployment instructions.
+
+---
+
+## 2. Website Concept and Visual Identity
+
+Create a personal video portfolio that behaves like a creator-focused video platform.
+
+The experience should feel familiar to YouTube users but must have its own branding, layout refinements and identity. Do not copy YouTube logos or pretend to be the official YouTube platform.
+
+### Design direction
+
+- Premium dark interface with a cinematic feel.
+- Charcoal and near-black backgrounds.
+- White typography with carefully chosen accent colors.
+- High-quality thumbnails and large video previews.
+- Rounded thumbnail corners, subtle borders and smooth hover effects.
+- Clean spacing, excellent readability and consistent typography.
+- Modern transitions and micro-interactions without unnecessary animations.
+- Desktop layout inspired by a video platform.
+- Mobile layout designed specifically for touch and vertical video.
+- Light mode may be offered as an optional theme, but dark mode is the default.
+
+The interface should look professional enough to impress marketing agencies, creators, brands, businesses and potential editing clients.
+
+Do not use generic template styling, oversized gradients everywhere, excessive glassmorphism, or decorative elements that distract from the videos.
+
+---
+
+## 3. Desktop Layout
+
+Create a responsive desktop interface with the following elements.
+
+### Top navigation bar
+
+Include:
+
+- Custom text or image logo, configurable from the admin dashboard.
+- Search input with search icon.
+- Search suggestions and recent search support where practical.
+- Optional category shortcut or filter controls.
+- Creator profile avatar on the right.
+- A clear contact or hiring action.
+- Sticky header while scrolling, where appropriate.
+
+The logo, creator identity and accent color must be configurable without editing source code.
+
+### Left sidebar
+
+Create a collapsible sidebar with the following navigation:
+
+1. Home
+2. Shorts
+3. Videos
+4. Featured Projects
+5. Categories
+6. About Me
+7. Contact / Hire Me
+
+Add suitable icons and active-state styling.
+
+The sidebar must collapse into a compact icon rail or disappear appropriately on smaller screens.
+
+Do not show links to the private administration dashboard anywhere in the public interface.
+
+### Main content area
+
+The homepage must feature a polished video-discovery layout, including:
+
+- A featured video or hero project.
+- Horizontally scrollable category chips.
+- A dedicated Shorts section.
+- A regular long-form video grid.
+- Featured client or commercial projects.
+- Recently added videos.
+- Popular or highlighted work, with manually controlled ordering.
+- A professional hiring call-to-action.
+
+Do not make the homepage look like a conventional business landing page. Video discovery must remain the primary experience.
+
+---
+
+## 4. Mobile Experience
+
+Mobile is equally important as desktop. Do not simply shrink the desktop layout.
+
+Implement a dedicated responsive experience.
+
+### Mobile navigation
+
+- Compact header with logo and profile avatar.
+- Search accessible from the header.
+- Bottom navigation containing Home, Shorts, Videos and Profile.
+- Proper safe-area spacing for modern phones.
+- Touch-friendly buttons and navigation.
+- No horizontal page overflow.
+
+### Mobile homepage
+
+- Two-column thumbnail grid for regular videos, adapting to screen width.
+- Visually distinct Shorts section.
+- Horizontal scrolling for categories.
+- Featured content without excessively tall hero sections.
+- Responsive text, thumbnails and spacing.
+
+### Mobile Shorts player
+
+Create an immersive vertical-video experience.
+
+Requirements:
+
+- Portrait video in a 9:16 layout.
+- Smooth vertical swipe navigation between Shorts.
+- Play and pause.
+- Mute and unmute.
+- Progress indicator.
+- Full-screen support where available.
+- Creator name and video title.
+- Description and category.
+- Share action using the Web Share API when supported, with a copy-link fallback.
+- Related project or contact action.
+- Proper loading and error states.
+
+Avoid loading every video simultaneously. Use lazy loading, efficient player mounting and sensible preloading to maintain performance.
+
+On desktop, display Shorts in a dedicated thumbnail grid or an appropriate vertical player layout.
+
+---
+
+## 5. Video Sections and Categories
+
+Create separate, fully functional pages for:
+
+### Home
+
+A mixed feed of Shorts and long-form videos, with featured projects and categories.
+
+### Shorts
+
+A vertical-video gallery featuring portrait thumbnails, duration labels and project titles.
+
+Clicking a Short opens the vertical player experience.
+
+### Videos
+
+A conventional video grid for landscape and long-form content.
+
+### Featured Projects
+
+A premium portfolio section for my strongest commercial, creative and client work.
+
+Each featured project should be capable of displaying:
+
+- Project title.
+- Client or brand name, if public.
+- Project category.
+- Video preview.
+- Project description.
+- My contribution to the project.
+- Editing techniques used.
+- Before-and-after comparison, if provided.
+- Results or testimonial, only when genuine information is supplied.
+- Related projects.
+- Contact call-to-action.
+
+### Categories
+
+Create dynamic categories, including initial examples such as:
+
+- Instagram Reels.
+- YouTube Videos.
+- Cinematic Edits.
+- Automotive Videos.
+- Business Advertisements.
+- Product Commercials.
+- Podcast Editing.
+- Personal Branding.
+- Gaming Edits.
+- Motion Graphics.
+- Color Grading.
+- Other Projects.
+
+These are starting examples, not permanent hardcoded categories. The administrator must be able to create, edit, reorder and delete categories.
+
+Do not display empty categories unnecessarily.
+
+---
+
+## 6. Video Watch Page
+
+Every video must have its own shareable URL.
+
+Use a clear route structure, such as:
+
+- `/watch/[slug]` for long-form videos.
+- `/shorts/[slug]` for Shorts.
+- `/projects/[slug]` for detailed portfolio projects.
+
+The watch page should include:
+
+- Main video player.
+- Video title and description.
+- Video type and category.
+- Publication date where applicable.
+- View count if reliable view tracking is implemented.
+- Share and copy-link actions.
+- Related videos.
+- More from this category.
+- Creator information.
+- A visible but non-intrusive Hire Me action.
+
+For embedded videos, support YouTube embeds and other explicitly supported providers.
+
+For directly hosted videos, support appropriate video formats and poster thumbnails.
+
+Use responsive video players, loading indicators and playback-error messages.
+
+Do not fabricate view counts, engagement metrics, client names, project results or testimonials.
+
+---
+
+## 7. Creator Profile
+
+The profile avatar in the top navigation must open a dedicated creator profile page.
+
+Create a premium creator profile with the following fields, all editable through the admin dashboard:
+
+- Profile photo or avatar.
+- Full name.
+- Professional title.
+- Short introduction.
+- Detailed biography.
+- Editing experience.
+- Main editing specialties.
+- Editing software and tools.
+- Languages, if supplied.
+- Professional email address.
+- Instagram link.
+- YouTube link.
+- LinkedIn link.
+- Other portfolio or social links.
+- Availability status.
+- Preferred project types.
+- Contact or Hire Me button.
+
+Use a profile URL such as `/profile`.
+
+The profile must look like a creator channel page, with navigation tabs for Videos, Shorts, Projects and About.
+
+If a field is not configured, hide it gracefully instead of displaying placeholder personal information.
+
+Do not invent my identity, work experience, clients or qualifications. Provide editable sample content only when clearly marked as sample content.
+
+### Contact flow
+
+The Hire Me button should open a professional contact page or configurable contact options.
+
+Support:
+
+- Email contact.
+- WhatsApp contact.
+- Professional social links.
+- A project inquiry form, if configured.
+
+The inquiry form should support name, email, project type, project description and optional budget or reference links.
+
+Validate input, protect the form from spam and provide clear success or failure messages.
+
+Never display fake confirmation when an inquiry has not actually been submitted.
+
+---
+
+## 8. Admin Dashboard — Private `/admin` Route
+
+Build a complete administration system that allows me to control the portfolio without modifying code.
+
+The only public-facing way to access the administration interface should be by manually navigating to:
+
+`/admin`
+
+Do not add an Admin button, Admin link, dashboard link, administrator reference or setup warning anywhere on the public website, footer, profile, mobile navigation or public contact pages.
+
+The `/admin` route must show a clean login interface to unauthenticated visitors.
+
+### Important login requirements
+
+I need a secure, private administrator account.
+
+**Never hardcode the administrator email or password in HTML, JSX, JavaScript, TypeScript frontend code, JSON files, source maps, public environment variables, GitHub commits or browser-delivered bundles.**
+
+Do not obfuscate credentials and pretend that obfuscation provides security.
+
+Do not automatically populate the login form with a predefined email or password.
+
+Do not show, reveal, print or return the stored password anywhere in the login page, dashboard, API response, browser console or website source code.
+
+Implement genuine server-side authentication.
+
+### Recommended authentication architecture
+
+Use Supabase Auth for administrator authentication and a protected database for portfolio content.
+
+Requirements:
+
+1. Provision the administrator account securely through the authentication provider or a trusted server-side setup procedure.
+2. Store only the required public configuration in the client application.
+3. Store private server secrets in Vercel Environment Variables.
+4. Never expose a Supabase service-role key or other privileged secret to the browser.
+5. Restrict administration privileges to the explicitly authorized administrator account.
+6. Verify the user's authenticated identity and administrator authorization on the server for every protected operation.
+7. Protect all `/admin` pages, server actions, API routes, upload endpoints and data mutations.
+8. Apply Supabase Row Level Security (RLS) policies to prevent unauthorized reads and modifications.
+9. Use secure session handling and appropriate cookie settings.
+10. Validate every request on the server, not only in the user interface.
+11. Rate-limit login attempts where supported.
+12. Provide safe error messages without revealing sensitive implementation details.
+13. Never trust a role, user ID or authorization flag supplied only by the browser.
+
+Do not rely on hiding the `/admin` URL as a security measure. Authentication and authorization must protect the dashboard even if someone discovers the route.
+
+### Initial administrator credentials
+
+Do not invent a fixed username/password pair and embed it in the generated code.
+
+Provide a secure setup process with explicit instructions for creating the initial administrator account and configuring the required private settings.
+
+If an initial password is needed, allow it to be supplied privately through a secure setup process or authentication provider. Never place the password directly in the repository.
+
+If a predefined initial password is configured through a private environment variable, it must be used only by trusted server-side code, must never be returned to the browser and should be rotated after the first successful login.
+
+Prefer a proper authentication-provider account over implementing custom password storage.
+
+### Login page
+
+The login form must contain only the fields needed to authenticate:
+
+- Email input.
+- Password input.
+- Sign-in button.
+- Password visibility toggle.
+- Forgot password or password recovery action.
+- Clear validation and authentication errors.
+
+Do not display the predefined email or password anywhere.
+
+Do not add hardcoded default values to either input.
+
+### Change password
+
+Inside the authenticated dashboard, provide a secure account settings page where I can change my password.
+
+Requirements:
+
+- Require the current password or a verified reauthentication flow.
+- Validate the new password.
+- Require confirmation of the new password.
+- Use the authentication provider's supported password update mechanism.
+- Never store passwords in plain text.
+- Never return the new password in an API response.
+- Show confirmation only after the provider reports success.
+- Allow secure password recovery through a verified email process if configured.
+
+Changing a password must not require editing application code or redeploying the website.
+
+### Session and logout
+
+- Keep the administrator signed in securely.
+- Protect against unauthorized session access.
+- Provide a logout button.
+- Clear the session appropriately on logout.
+- Redirect unauthenticated users to the login page.
+- Ensure an expired or invalid session cannot continue modifying data.
+
+---
+
+## 9. Admin Dashboard Features
+
+Create a professional, responsive dashboard with a separate layout from the public website.
+
+### A. Overview
+
+Show useful, genuine statistics such as:
+
+- Total published videos.
+- Total Shorts.
+- Total long-form videos.
+- Draft projects.
+- Total categories.
+- Recent content updates.
+- Video views, if real tracking is implemented.
+- Recent project inquiries, if the inquiry system is enabled.
+
+Do not fabricate analytics or display hardcoded numbers as real data.
+
+### B. Video management
+
+I must be able to:
+
+- Add a new video.
+- Edit an existing video.
+- Delete a video after confirmation.
+- Publish or unpublish a video.
+- Save a draft.
+- Feature or unfeature a project.
+- Reorder homepage content.
+- Set video type: Short, Long-form or Featured Project.
+- Assign one or more categories.
+- Upload or select a thumbnail.
+- Upload or select a poster image.
+- Set a video source.
+- Add an optional external video URL.
+- Edit title, description and project details.
+- Set a custom URL slug.
+- Preview a video before publishing.
+- Preview the public page.
+- Search and filter the video library.
+
+Use a clear publishing workflow and protect against accidental deletion.
+
+### C. Video upload system
+
+Allow video files to be uploaded to a suitable storage or video-hosting service.
+
+Use Supabase Storage or another appropriate service if supported by the selected architecture.
+
+Implement:
+
+- File-type validation.
+- File-size limits.
+- Upload progress.
+- Upload success and failure states.
+- Thumbnail and poster management.
+- Secure storage policies.
+- Lazy loading on public pages.
+- Graceful handling of unavailable or deleted media.
+
+Do not upload large video files through a serverless function that cannot reliably handle their size or duration.
+
+Use direct uploads to suitable storage or a dedicated video service where necessary.
+
+For the initial version, support adding external YouTube video URLs and direct video URLs as an alternative to uploading files.
+
+Clearly distinguish uploaded media from externally hosted videos.
+
+### D. Category management
+
+Allow the administrator to create, rename, reorder and delete categories.
+
+Prevent accidental deletion from breaking published video pages. Warn when a category is in use and handle reassignment or removal safely.
+
+### E. Profile management
+
+Allow editing of:
+
+- Name.
+- Profile photo.
+- Biography.
+- Professional title.
+- Experience.
+- Skills.
+- Software expertise.
+- Email.
+- Social links.
+- Availability.
+- Contact preferences.
+
+Changes must appear on the public profile after saving.
+
+### F. Homepage management
+
+Allow control over:
+
+- Featured project.
+- Homepage section visibility.
+- Section ordering.
+- Featured Shorts.
+- Featured videos.
+- Categories displayed on the homepage.
+- Hero content.
+- Contact call-to-action.
+- Featured project ordering.
+
+Avoid forcing the administrator to edit source code to change homepage content.
+
+### G. Contact and inquiries
+
+If the inquiry form is enabled, allow the administrator to view inquiries, update their status, mark inquiries as reviewed and delete them.
+
+Keep personal inquiry data private and restrict access to authorized administrators.
+
+Do not promise email delivery unless an email provider has been configured and the delivery operation has succeeded.
+
+### H. Website settings
+
+Provide configurable settings for:
+
+- Website name.
+- Logo.
+- Accent color.
+- Default theme.
+- Creator profile.
+- Contact email.
+- WhatsApp number.
+- Social links.
+- SEO defaults.
+- Homepage sections.
+- Footer text.
+- Public contact options.
+
+All settings must be stored persistently in the backend, not only in browser local storage.
+
+### I. Account security
+
+Include:
+
+- Change password.
+- Password recovery information.
+- Session logout.
+- Current account information.
+- A clear indication of successful or failed security operations.
+
+Never provide a control that reveals the current password.
+
+---
+
+## 10. Database and Backend Architecture
+
+Design a reliable database schema.
+
+Suggested tables:
+
+### `profiles`
+
+- `id`
+- `display_name`
+- `professional_title`
+- `avatar_url`
+- `short_bio`
+- `full_bio`
+- `skills`
+- `experience`
+- `email`
+- `social_links`
+- `availability`
+- `updated_at`
+
+### `videos`
+
+- `id`
+- `title`
+- `slug`
+- `description`
+- `video_type`
+- `video_source_type`
+- `video_url`
+- `storage_path`
+- `thumbnail_url`
+- `poster_url`
+- `duration`
+- `published`
+- `featured`
+- `display_order`
+- `published_at`
+- `created_at`
+- `updated_at`
+
+### `categories`
+
+- `id`
+- `name`
+- `slug`
+- `description`
+- `display_order`
+- `created_at`
+
+### `video_categories`
+
+- `video_id`
+- `category_id`
+
+### `site_settings`
+
+- `id`
+- `site_name`
+- `logo_url`
+- `accent_color`
+- `contact_settings`
+- `homepage_settings`
+- `seo_settings`
+- `updated_at`
+
+### `project_inquiries`
+
+- `id`
+- `name`
+- `email`
+- `project_type`
+- `message`
+- `budget`
+- `reference_url`
+- `status`
+- `created_at`
+
+Adapt the schema where necessary. Use appropriate foreign keys, indexes, validation, uniqueness constraints and timestamps.
+
+Use database migrations or reproducible SQL setup scripts.
+
+Create and enforce Row Level Security policies.
+
+Public visitors should only be able to access published content and explicitly public profile/settings data.
+
+Only authorized administrators should be able to create, update or delete protected content.
+
+Private contact information and inquiry records must not become publicly queryable.
+
+Do not expose privileged database credentials to client-side code.
+
+---
+
+## 11. Search, Filtering and Discovery
+
+Implement a working search experience.
+
+Search should support:
+
+- Video titles.
+- Descriptions.
+- Categories.
+- Project names where provided.
+
+Add category filtering and sorting options where useful.
+
+Provide clear empty states such as “No videos found” and a way to clear filters.
+
+Search must use actual database content rather than a static list.
+
+For a modest portfolio, an efficient database query is sufficient; do not introduce a complex search service unless genuinely necessary.
+
+---
+
+## 12. Performance and Video Optimization
+
+Video performance is a priority.
+
+Implement:
+
+- Responsive image sizing.
+- Optimized thumbnails.
+- Lazy loading.
+- Appropriate image formats.
+- Video poster images.
+- Deferred loading of video players.
+- Sensible preloading.
+- Pagination or incremental loading for large collections.
+- Database query optimization.
+- Loading skeletons where appropriate.
+- Error boundaries and useful error messages.
+- Responsive layouts that avoid layout shifts.
+- Accessible controls and keyboard navigation.
+
+Do not autoplay every video with sound.
+
+Use muted previews only when appropriate and supported.
+
+Respect reduced-motion preferences.
+
+Ensure the website remains usable on slower mobile connections.
+
+Do not download the full video library on the initial page load.
+
+---
+
+## 13. SEO and Sharing
+
+Implement:
+
+- Page-specific titles and descriptions.
+- Canonical URLs where appropriate.
+- Open Graph metadata.
+- Social sharing previews.
+- Descriptive video titles and alt text.
+- Sitemap.
+- Robots configuration.
+- Structured video metadata where appropriate.
+- Shareable URLs for individual videos and projects.
+
+Drafts and unpublished videos must not appear in public listings or public search results.
+
+Ensure that protected admin pages are not intended for indexing, while recognizing that `noindex` is not a replacement for authentication.
+
+---
+
+## 14. Accessibility and Reliability
+
+Use semantic HTML, accessible form labels, keyboard navigation, focus indicators and appropriate contrast.
+
+Provide visible loading, empty, success and error states.
+
+Prevent duplicate submissions.
+
+Validate data on both the client and server.
+
+Do not silently discard unsaved changes.
+
+Add confirmation dialogs for destructive actions.
+
+Use safe error handling without exposing stack traces, private credentials or database secrets.
+
+If the backend is not configured, display a clear setup or service-unavailable state instead of pretending that authentication, uploads or database operations work.
+
+Never use fake authentication, hardcoded dashboard statistics, simulated database writes or placeholder success messages in the final implementation.
+
+---
+
+## 15. Branding and Content Rules
+
+The website must focus on my editing work.
+
+Do not add unrelated ecommerce features, shopping carts, payments, product catalogs or 3D product experiences.
+
+Do not add a public admin link.
+
+Do not expose administrator credentials.
+
+Do not invent clients, testimonials, views or business results.
+
+Use configurable sample video entries only when clearly identified as examples that I can replace with my actual work.
+
+Keep the public site visually polished even when there are only a few videos.
+
+If the profile photo, logo or video thumbnails are not yet supplied, use neutral placeholders that can be replaced from the dashboard.
+
+---
+
+## 16. GitHub and Vercel Deployment
+
+Prepare the project for deployment through GitHub and Vercel.
+
+Provide:
+
+- Complete project source code.
+- A clean and understandable folder structure.
+- A dependency manifest.
+- A `.env.example` file containing variable names only, never real secrets.
+- Database migration or setup SQL files.
+- Authentication configuration instructions.
+- Storage configuration instructions.
+- Vercel deployment instructions.
+- GitHub push and deployment instructions.
+- A clear list of required environment variables.
+- A production build and type-check procedure.
+
+Use Vercel Environment Variables for private server configuration.
+
+Use Supabase Auth for the administrator account and document the safe initial account setup.
+
+If any environment variable is public by design, make that explicit. Never prefix private credentials with a public environment-variable prefix.
+
+Never commit `.env` files containing real credentials.
+
+Ensure the project builds successfully and does not depend on local-only files or secrets.
+
+### Free-tier consideration
+
+Prefer free-tier-compatible services, but do not assume that free tiers offer unlimited video storage, bandwidth, email delivery or database usage.
+
+Explain any service limits that affect the implementation.
+
+Do not require a paid service for core authentication if a suitable free-tier solution is available.
+
+---
+
+## 17. Required Route Structure
+
+Implement a clear routing structure similar to:
+
+- `/` — Home.
+- `/shorts` — Shorts gallery.
+- `/shorts/[slug]` — Individual Short.
+- `/videos` — Long-form videos.
+- `/watch/[slug]` — Video watch page.
+- `/projects` — Featured projects.
+- `/projects/[slug]` — Project details.
+- `/categories/[slug]` — Category page.
+- `/profile` — Creator profile.
+- `/contact` — Contact and inquiries.
+- `/admin` — Private login entry point.
+- `/admin/dashboard` — Protected overview.
+- `/admin/videos` — Video management.
+- `/admin/categories` — Category management.
+- `/admin/profile` — Profile management.
+- `/admin/homepage` — Homepage settings.
+- `/admin/inquiries` — Inquiry management.
+- `/admin/settings` — Website and account settings.
+
+Protect all admin routes on the server. Redirect unauthenticated visitors to `/admin` for login.
+
+The `/admin` route is the only public entry point to the private administration interface; do not link to it from public pages.
+
+---
+
+## 18. Implementation Workflow
+
+Work through the following stages.
+
+### Stage 1 — Foundation
+
+- Establish the application architecture.
+- Create the responsive design system.
+- Configure routes and shared layouts.
+- Set up the database schema and authentication integration.
+- Configure secure environment variables.
+
+### Stage 2 — Public portfolio
+
+- Build the homepage.
+- Build Shorts and long-form galleries.
+- Build video watch pages.
+- Build featured project pages.
+- Build the creator profile.
+- Build search and category filters.
+- Build the contact flow.
+
+### Stage 3 — Secure admin dashboard
+
+- Implement server-side authentication.
+- Protect every administrative operation.
+- Implement video management.
+- Implement category management.
+- Implement profile management.
+- Implement homepage settings.
+- Implement inquiries and website settings.
+- Implement password change and logout.
+
+### Stage 4 — Quality assurance
+
+Test the entire application, including:
+
+- Desktop and mobile layouts.
+- Navigation and deep links.
+- Video playback.
+- Search and filtering.
+- Empty and error states.
+- Video creation, editing and deletion.
+- Publishing and unpublishing.
+- Persistent settings.
+- Admin authentication.
+- Password updates.
+- Unauthorized API requests.
+- Database RLS policies.
+- Upload validation.
+- Production build.
+- Deployment configuration.
+
+Do not claim that tests passed unless they have actually been executed.
+
+### Stage 5 — Delivery
+
+Provide a concise implementation report describing:
+
+- What was implemented.
+- Which features are functional.
+- Which services require setup.
+- Which environment variables are required.
+- How to create the initial administrator account securely.
+- How to deploy through GitHub and Vercel.
+- Any limitations that remain.
+
+---
+
+## 19. Final Acceptance Criteria
+
+The project is complete only when:
+
+1. The website looks and behaves like a modern video-sharing platform.
+2. Both Shorts and long-form content work on desktop and mobile.
+3. Every video can have its own shareable page.
+4. The profile displays editable professional information.
+5. The contact and hiring flow works when configured.
+6. The admin dashboard is accessible through `/admin`.
+7. Administrator credentials are never embedded in public source code.
+8. Authentication and authorization are enforced server-side.
+9. Password changes work through the configured authentication provider.
+10. Video, category, profile and homepage changes persist in the backend.
+11. Public visitors cannot modify protected data or access private inquiries.
+12. The application is prepared for GitHub and Vercel deployment.
+13. Missing configuration is documented honestly.
+14. The production build is verified and remaining failures are reported.
+
+**Most important instruction:** Prioritize a beautiful video-browsing experience, reliable mobile playback, a genuinely functional portfolio, and secure administrator access. Do not sacrifice security or real functionality for visual appearance.
+
+Begin implementation now. If a service needs credentials or configuration that cannot be supplied automatically, build the correct integration, document the exact setup steps, and clearly identify the remaining requirement. Never replace it with fake functionality or insecure hardcoded credentials.

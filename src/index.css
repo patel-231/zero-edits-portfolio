@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --yt-main-bg: #0f0f0f;
+    --yt-spec-base-background: #0f0f0f;
+    --yt-spec-raised-background: #212121;
+    --yt-spec-menu-background: #282828;
+    --yt-spec-text-primary: #f1f1f1;
+    --yt-spec-text-secondary: #aaaaaa;
+    --yt-spec-10-percent-layer: rgba(255, 255, 255, 0.1);
+    --yt-brand-red: #ff0000;
+  }
+  
+  body {
+    background-color: #0f0f0f;
+    color: #f1f1f1;
+    font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #f1f1f1;
+  }
+}
+
+/* Authentic YouTube scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #717171;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #909090;
+}
+
+/* Utility to hide scrollbars for category pills */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
