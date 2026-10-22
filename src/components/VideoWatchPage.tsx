@@ -21,7 +21,7 @@ import {
   Copy
 } from 'lucide-react';
 import { VideoItem, Category, CreatorProfile, SiteSettings, CommentItem } from '../types';
-import { formatViews, formatRelativeTime } from '../utils/format';
+import { formatViews, formatRelativeTime, formatDriveImageUrl, getCleanYouTubeEmbedUrl } from '../utils/format';
 import { StorageService } from '../services/storage';
 
 interface VideoWatchPageProps {
@@ -133,10 +133,10 @@ export const VideoWatchPage: React.FC<VideoWatchPageProps> = ({
       {isTheaterMode && (
         <div className="w-full mb-6">
           <div className="relative aspect-[21/9] min-h-[380px] max-h-[70vh] w-full rounded-2xl overflow-hidden bg-black shadow-2xl">
-            {video.videoUrl.endsWith('.mp4') ? (
+            {video.videoUrl.endsWith('.mp4') || video.videoUrl.startsWith('blob:') || video.videoUrl.startsWith('data:') ? (
               <video
                 src={video.videoUrl}
-                poster={video.posterUrl || video.thumbnailUrl}
+                poster={formatDriveImageUrl(video.posterUrl || video.thumbnailUrl)}
                 controls
                 autoPlay
                 playsInline
@@ -144,13 +144,20 @@ export const VideoWatchPage: React.FC<VideoWatchPageProps> = ({
               />
             ) : (
               <iframe
-                src={video.videoUrl.replace('watch?v=', 'embed/')}
+                src={getCleanYouTubeEmbedUrl(video.videoUrl) || video.videoUrl.replace('watch?v=', 'embed/')}
                 title={video.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 className="w-full h-full border-0"
               />
             )}
+            
+            {/* Custom Portfolio Watermark Over Clean Player */}
+            <div className="absolute top-4 left-4 z-20 pointer-events-none flex items-center gap-2 bg-black/75 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold border border-white/10 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-[#ff0000]"></span>
+              <span>{profile.displayName}</span>
+            </div>
+
             <button
               onClick={() => setIsTheaterMode(false)}
               className="absolute top-4 right-4 z-20 px-3 py-1.5 bg-black/70 hover:bg-black rounded-lg text-white text-xs font-semibold flex items-center gap-1.5 backdrop-blur-sm"
@@ -170,33 +177,30 @@ export const VideoWatchPage: React.FC<VideoWatchPageProps> = ({
           {/* Default 16:9 Cinema Player (when not in theater mode) */}
           {!isTheaterMode && (
             <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl group">
-              {video.videoUrl.endsWith('.mp4') ? (
+              {video.videoUrl.endsWith('.mp4') || video.videoUrl.startsWith('blob:') || video.videoUrl.startsWith('data:') ? (
                 <video
                   src={video.videoUrl}
-                  poster={video.posterUrl || video.thumbnailUrl}
+                  poster={formatDriveImageUrl(video.posterUrl || video.thumbnailUrl)}
                   controls
                   autoPlay
                   playsInline
                   className="w-full h-full object-cover"
                 />
-              ) : video.videoUrl.includes('youtube.com') || video.videoUrl.includes('youtu.be') ? (
+              ) : (
                 <iframe
-                  src={video.videoUrl.replace('watch?v=', 'embed/')}
+                  src={getCleanYouTubeEmbedUrl(video.videoUrl) || video.videoUrl.replace('watch?v=', 'embed/')}
                   title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   className="w-full h-full border-0"
                 />
-              ) : (
-                <video
-                  src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
-                  poster={video.posterUrl || video.thumbnailUrl}
-                  controls
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
               )}
+
+              {/* Custom Portfolio Watermark Over Clean Player */}
+              <div className="absolute top-3 left-3 z-10 pointer-events-none flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[11px] font-semibold border border-white/10 shadow-md">
+                <span className="w-2 h-2 rounded-full bg-[#ff0000]"></span>
+                <span>{profile.displayName}</span>
+              </div>
 
               {/* Theater Mode Button on Hover */}
               <button
@@ -541,7 +545,7 @@ export const VideoWatchPage: React.FC<VideoWatchPageProps> = ({
                 {/* 16:9 Thumbnail */}
                 <div className="relative w-40 aspect-video rounded-xl overflow-hidden bg-[#212121] shrink-0">
                   <img
-                    src={item.thumbnailUrl}
+                    src={formatDriveImageUrl(item.thumbnailUrl)}
                     alt={item.title}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform"

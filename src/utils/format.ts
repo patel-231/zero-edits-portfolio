@@ -26,6 +26,50 @@ export function formatRelativeTime(dateString: string): string {
   }
 }
 
+/**
+ * Automatically converts Google Drive share links to high-speed direct image URLs
+ * Supports:
+ * - https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+ * - https://drive.google.com/open?id=FILE_ID
+ * - https://drive.google.com/uc?id=FILE_ID
+ */
+export function formatDriveImageUrl(url: string): string {
+  if (!url) return '';
+  if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+
+  // Check for Google Drive links
+  if (url.includes('drive.google.com')) {
+    const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match1 && match1[1]) {
+      return `https://lh3.googleusercontent.com/d/${match1[1]}`;
+    }
+    const match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (match2 && match2[1]) {
+      return `https://lh3.googleusercontent.com/d/${match2[1]}`;
+    }
+  }
+
+  return url;
+}
+
+/**
+ * Extracts video ID from any YouTube link (shorts, watch, youtu.be, embed)
+ */
+export function extractYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Returns a clean, minimal-branding YouTube embed without intrusive logos
+ */
+export function getCleanYouTubeEmbedUrl(url: string): string | null {
+  const videoId = extractYouTubeId(url);
+  if (!videoId) return null;
+  return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&showinfo=0&disablekb=0&playsinline=1&enablejsapi=1`;
+}
+
 export function getAccentClasses(accent: string = 'red') {
   switch (accent) {
     case 'amber':
@@ -67,11 +111,11 @@ export function getAccentClasses(accent: string = 'red') {
     case 'red':
     default:
       return {
-        bg: 'bg-red-600',
-        text: 'text-red-500',
-        border: 'border-red-600',
-        hoverBg: 'hover:bg-red-700',
-        ring: 'focus:ring-red-500',
+        bg: 'bg-[#ff0000]',
+        text: 'text-[#ff0000]',
+        border: 'border-[#ff0000]',
+        hoverBg: 'hover:bg-[#cc0000]',
+        ring: 'focus:ring-[#ff0000]',
         badge: 'bg-red-500/10 text-red-400 border-red-500/20'
       };
   }

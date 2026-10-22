@@ -15,7 +15,7 @@ import {
   Check
 } from 'lucide-react';
 import { VideoItem, CreatorProfile } from '../types';
-import { formatViews } from '../utils/format';
+import { formatViews, formatDriveImageUrl, getCleanYouTubeEmbedUrl } from '../utils/format';
 import { StorageService } from '../services/storage';
 
 interface ShortsPlayerModalProps {
@@ -174,34 +174,46 @@ export const ShortsPlayerModal: React.FC<ShortsPlayerModalProps> = ({
 
         {/* 9:16 Video Player */}
         <div className="relative w-full max-w-[400px] h-full rounded-2xl overflow-hidden bg-black shadow-2xl flex items-center justify-center border border-[#272727]">
-          <video
-            ref={videoRef}
-            src={currentShort.videoUrl}
-            poster={currentShort.posterUrl || currentShort.thumbnailUrl}
-            className="w-full h-full object-cover cursor-pointer"
-            autoPlay
-            loop
-            playsInline
-            muted={isMuted}
-            onClick={togglePlay}
-            onTimeUpdate={handleTimeUpdate}
-          />
+          {currentShort.videoUrl.includes('youtube.com') || currentShort.videoUrl.includes('youtu.be') ? (
+            <iframe
+              src={getCleanYouTubeEmbedUrl(currentShort.videoUrl) || currentShort.videoUrl.replace('watch?v=', 'embed/')}
+              title={currentShort.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full border-0"
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              src={currentShort.videoUrl}
+              poster={formatDriveImageUrl(currentShort.posterUrl || currentShort.thumbnailUrl)}
+              className="w-full h-full object-cover cursor-pointer"
+              autoPlay
+              loop
+              playsInline
+              muted={isMuted}
+              onClick={togglePlay}
+              onTimeUpdate={handleTimeUpdate}
+            />
+          )}
 
           {/* Scrim Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 pointer-events-none" />
 
-          {/* Top Audio Toggle */}
-          <div className="absolute top-4 right-4 z-20">
-            <button
-              onClick={toggleMute}
-              className="p-2 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors"
-            >
-              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-            </button>
-          </div>
+          {/* Top Audio Toggle (for local video) */}
+          {!(currentShort.videoUrl.includes('youtube.com') || currentShort.videoUrl.includes('youtu.be')) && (
+            <div className="absolute top-4 right-4 z-20">
+              <button
+                onClick={toggleMute}
+                className="p-2 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors"
+              >
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+            </div>
+          )}
 
           {/* Pause overlay icon */}
-          {!isPlaying && (
+          {!isPlaying && !(currentShort.videoUrl.includes('youtube.com') || currentShort.videoUrl.includes('youtu.be')) && (
             <div
               onClick={togglePlay}
               className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/30 z-10"

@@ -9,7 +9,6 @@ import { VideoWatchPage } from './components/VideoWatchPage';
 import { ShortsPlayerModal } from './components/ShortsPlayerModal';
 import { ProfileChannelPage } from './components/ProfileChannelPage';
 import { ContactHireModal } from './components/ContactHireModal';
-import { AdminLogin } from './components/admin/AdminLogin';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { VideoCard } from './components/VideoCard';
 import { ShortsCard } from './components/ShortsCard';
@@ -36,30 +35,51 @@ export default function App() {
 
   // Modals & Panels
   const [isHireModalOpen, setIsHireModalOpen] = useState(false);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => StorageService.getAdminSession());
 
-  // URL state synchronization
+  // URL state synchronization & Routing (/zero is the secret admin route)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const watchSlug = params.get('watch') || params.get('v');
-    const viewParam = params.get('view');
-    const adminParam = params.get('admin');
+    const handleLocationChange = () => {
+      const pathname = window.location.pathname;
+      const params = new URLSearchParams(window.location.search);
+      const hash = window.location.hash;
+      const watchSlug = params.get('watch') || params.get('v');
+      const viewParam = params.get('view');
 
-    if (adminParam === 'true') {
-      setCurrentView('admin');
-    } else if (watchSlug) {
-      const match = StorageService.getVideoBySlug(watchSlug);
-      if (match) {
-        if (match.videoType === 'short') {
-          setActiveShort(match);
-        } else {
-          setActiveWatchVideo(match);
-          setCurrentView('watch');
+      // Check if URL is /zero or contains zero param/hash
+      if (
+        pathname === '/zero' ||
+        pathname === '/zero/' ||
+        params.has('zero') ||
+        hash === '#/zero' ||
+        hash === '#zero'
+      ) {
+        setCurrentView('admin');
+        return;
+      }
+
+      if (watchSlug) {
+        const match = StorageService.getVideoBySlug(watchSlug);
+        if (match) {
+          if (match.videoType === 'short') {
+            setActiveShort(match);
+          } else {
+            setActiveWatchVideo(match);
+            setCurrentView('watch');
+          }
+          return;
         }
       }
-    } else if (viewParam) {
-      setCurrentView(viewParam);
-    }
+
+      if (viewParam) {
+        setCurrentView(viewParam);
+      } else {
+        setCurrentView('home');
+      }
+    };
+
+    handleLocationChange();
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
   const refreshAllData = () => {
@@ -67,11 +87,18 @@ export default function App() {
     setCategories(StorageService.getCategories());
     setProfile(StorageService.getProfile());
     setSettings(StorageService.getSettings());
-    setIsAdminAuthenticated(StorageService.getAdminSession());
   };
 
   const navigateTo = (view: string, param?: string) => {
     setSearchQuery('');
+
+    // Admin direct route (/zero)
+    if (view === 'admin' || view === 'zero') {
+      setCurrentView('admin');
+      window.history.pushState({}, '', '/zero');
+      return;
+    }
+
     if (view === 'watch' && param) {
       const match = StorageService.getVideoBySlug(param);
       if (match) {
@@ -129,27 +156,11 @@ export default function App() {
       )
     : null;
 
-  // Render Admin View (YouTube Studio)
+  // Render Zero Studio (Admin Panel accessible only by /zero in URL, NO password required)
   if (currentView === 'admin') {
-    if (!isAdminAuthenticated) {
-      return (
-        <AdminLogin
-          onLoginSuccess={() => {
-            setIsAdminAuthenticated(true);
-            refreshAllData();
-          }}
-          onExit={() => navigateTo('home')}
-        />
-      );
-    }
     return (
       <AdminDashboard
         onExitAdmin={() => navigateTo('home')}
-        onLogout={() => {
-          StorageService.setAdminSession(false);
-          setIsAdminAuthenticated(false);
-          navigateTo('home');
-        }}
         onDataUpdated={refreshAllData}
       />
     );
@@ -172,7 +183,6 @@ export default function App() {
         onOpenHireModal={() => setIsHireModalOpen(true)}
         onNavigate={navigateTo}
         currentView={currentView}
-        isAdmin={isAdminAuthenticated}
       />
 
       <div className="flex-1 flex w-full">

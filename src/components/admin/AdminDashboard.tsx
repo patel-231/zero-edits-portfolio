@@ -1,68 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   LayoutDashboard, 
   Film, 
   BarChart2, 
-  MessageSquare, 
   Sliders, 
   Inbox, 
   Settings, 
-  LogOut, 
   Plus, 
   Trash2, 
   Edit3, 
   ExternalLink, 
   Check, 
   Upload, 
-  Eye, 
-  EyeOff, 
   Save, 
-  KeyRound, 
-  ShieldCheck, 
   CheckCircle2, 
-  TrendingUp, 
-  Users, 
-  Clock, 
   Flame,
   Search,
-  Sparkles
+  Sparkles,
+  Link2,
+  HardDrive,
+  Database,
+  Info,
+  Layers,
+  Image as ImageIcon
 } from 'lucide-react';
 import { VideoItem, Category, CreatorProfile, SiteSettings, ProjectInquiry, VideoType } from '../../types';
 import { StorageService, ASSETS } from '../../services/storage';
-import { formatViews, formatRelativeTime } from '../../utils/format';
+import { formatViews, formatRelativeTime, formatDriveImageUrl, getCleanYouTubeEmbedUrl } from '../../utils/format';
 
 interface AdminDashboardProps {
   onExitAdmin: () => void;
-  onLogout: () => void;
   onDataUpdated: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onExitAdmin,
-  onLogout,
   onDataUpdated,
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'content' | 'analytics' | 'comments' | 'customization' | 'inquiries' | 'settings'
-  >('dashboard');
+    'dashboard' | 'content' | 'categories' | 'customization' | 'inquiries' | 'storage'
+  >('content');
 
   const [videos, setVideos] = useState<VideoItem[]>(() => StorageService.getVideos());
   const [categories, setCategories] = useState<Category[]>(() => StorageService.getCategories());
   const [profile, setProfile] = useState<CreatorProfile>(() => StorageService.getProfile());
   const [settings, setSettings] = useState<SiteSettings>(() => StorageService.getSettings());
   const [inquiries, setInquiries] = useState<ProjectInquiry[]>(() => StorageService.getInquiries());
-  const [adminAccount, setAdminAccount] = useState(() => StorageService.getAdminAccount());
   
   const [notice, setNotice] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  // Modal State
   const [editingVideo, setEditingVideo] = useState<VideoItem | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Password change state
-  const [currentPass, setCurrentPass] = useState('');
-  const [newPass, setNewPass] = useState('');
-  const [confirmPass, setConfirmPass] = useState('');
-  const [passError, setPassError] = useState('');
-  const [passSuccess, setPassSuccess] = useState('');
+  // Form Fields in Modal
+  const [formTitle, setFormTitle] = useState('');
+  const [formSlug, setFormSlug] = useState('');
+  const [formType, setFormType] = useState<VideoType>('long');
+  const [formVideoSource, setFormVideoSource] = useState<'url' | 'local'>('url');
+  const [formVideoUrl, setFormVideoUrl] = useState('');
+  const [formThumbnailSource, setFormThumbnailSource] = useState<'drive_url' | 'local'>('drive_url');
+  const [formThumbnailUrl, setFormThumbnailUrl] = useState('');
+  const [formDuration, setFormDuration] = useState('03:45');
+  const [formDescription, setFormDescription] = useState('');
+  const [formClient, setFormClient] = useState('');
+  const [formCategory, setFormCategory] = useState('cat-video-editing');
+  const [formPublished, setFormPublished] = useState(true);
+
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
+  const thumbFileInputRef = useRef<HTMLInputElement>(null);
+  const avatarFileInputRef = useRef<HTMLInputElement>(null);
+  const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
   const showNotice = (message: string, type: 'success' | 'error' = 'success') => {
     setNotice({ message, type });
@@ -75,106 +83,168 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setProfile(StorageService.getProfile());
     setSettings(StorageService.getSettings());
     setInquiries(StorageService.getInquiries());
-    setAdminAccount(StorageService.getAdminAccount());
     onDataUpdated();
   };
 
-  // Video Management
-  const handleSaveVideo = (videoData: Partial<VideoItem>) => {
-    if (!videoData.title || !videoData.videoUrl) {
-      showNotice('Title and Video URL are required', 'error');
+  // Open modal for new video
+  const openNewVideoModal = () => {
+    setEditingVideo(null);
+    setFormTitle('');
+    setFormSlug('');
+    setFormType('long');
+    setFormVideoSource('url');
+    setFormVideoUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4');
+    setFormThumbnailSource('drive_url');
+    setFormThumbnailUrl(ASSETS.heroAutomotive);
+    setFormDuration('03:45');
+    setFormDescription('');
+    setFormClient('');
+    setFormCategory('cat-video-editing');
+    setFormPublished(true);
+    setIsModalOpen(true);
+  };
+
+  // Open modal for editing existing video
+  const openEditVideoModal = (video: VideoItem) => {
+    setEditingVideo(video);
+    setFormTitle(video.title);
+    setFormSlug(video.slug);
+    setFormType(video.videoType);
+    setFormVideoSource(video.videoUrl.startsWith('data:') || video.videoUrl.startsWith('blob:') ? 'local' : 'url');
+    setFormVideoUrl(video.videoUrl);
+    setFormThumbnailSource(video.thumbnailUrl.startsWith('data:') ? 'local' : 'drive_url');
+    setFormThumbnailUrl(video.thumbnailUrl);
+    setFormDuration(video.duration);
+    setFormDescription(video.description);
+    setFormClient(video.clientName || '');
+    setFormCategory(video.categoryIds[0] || 'cat-video-editing');
+    setFormPublished(video.published);
+    setIsModalOpen(true);
+  };
+
+  // Handle local video file upload from device
+  const handleLocalVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setFormVideoUrl(objectUrl);
+      setFormVideoSource('local');
+      showNotice(`Local video "${file.name}" loaded from device!`);
+    }
+  };
+
+  // Handle local thumbnail upload from device
+  const handleLocalThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setFormThumbnailUrl(reader.result);
+          setFormThumbnailSource('local');
+          showNotice(`Thumbnail image loaded from device!`);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle Save
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formTitle.trim() || !formVideoUrl.trim()) {
+      showNotice('Please provide a video title and video source', 'error');
       return;
     }
 
+    // Convert Drive link if provided
+    const finalThumbnail = formThumbnailSource === 'drive_url'
+      ? formatDriveImageUrl(formThumbnailUrl.trim())
+      : formThumbnailUrl;
+
     const newVideo: VideoItem = {
-      id: videoData.id || `vid-${Date.now()}`,
-      title: videoData.title,
-      slug: videoData.slug || videoData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      description: videoData.description || '',
-      videoType: videoData.videoType || 'long',
-      videoSourceType: videoData.videoSourceType || 'direct',
-      videoUrl: videoData.videoUrl,
-      thumbnailUrl: videoData.thumbnailUrl || ASSETS.heroAutomotive,
-      posterUrl: videoData.posterUrl || videoData.thumbnailUrl || ASSETS.heroAutomotive,
-      duration: videoData.duration || '02:30',
-      views: videoData.views || 1200,
-      likes: videoData.likes || 140,
-      published: videoData.published !== undefined ? videoData.published : true,
-      featured: videoData.featured !== undefined ? videoData.featured : false,
-      displayOrder: videoData.displayOrder || videos.length + 1,
-      publishedAt: videoData.publishedAt || new Date().toISOString().split('T')[0],
-      categoryIds: videoData.categoryIds || ['cat-video-editing'],
+      id: editingVideo?.id || `vid-${Date.now()}`,
+      title: formTitle.trim(),
+      slug: formSlug.trim() || formTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      description: formDescription.trim(),
+      videoType: formType,
+      videoSourceType: 'direct',
+      videoUrl: formVideoUrl.trim(),
+      thumbnailUrl: finalThumbnail || ASSETS.heroAutomotive,
+      posterUrl: finalThumbnail || ASSETS.heroAutomotive,
+      duration: formDuration.trim() || '02:30',
+      views: editingVideo?.views || 1000,
+      likes: editingVideo?.likes || 120,
+      published: formPublished,
+      featured: editingVideo?.featured || false,
+      displayOrder: editingVideo?.displayOrder || videos.length + 1,
+      publishedAt: editingVideo?.publishedAt || new Date().toISOString().split('T')[0],
+      categoryIds: [formCategory],
       channelName: profile.displayName,
       channelAvatar: profile.avatarUrl,
       channelSubscribers: profile.subscribersCount,
       channelHandle: profile.handle,
-      commentsCount: 0,
-      clientName: videoData.clientName || '',
+      commentsCount: editingVideo?.commentsCount || 0,
+      clientName: formClient.trim(),
     };
 
     StorageService.saveVideo(newVideo);
     refreshData();
-    setIsAddModalOpen(false);
-    setEditingVideo(null);
+    setIsModalOpen(false);
     showNotice(`Video "${newVideo.title}" saved successfully!`);
   };
 
+  // Delete video
   const handleDeleteVideo = (id: string, title: string) => {
-    if (confirm(`Are you sure you want to permanently delete "${title}"?`)) {
+    if (confirm(`Delete "${title}"? This cannot be undone.`)) {
       StorageService.deleteVideo(id);
       refreshData();
       showNotice(`Video deleted.`);
     }
   };
 
+  // Toggle publish
   const handleTogglePublish = (video: VideoItem) => {
     const updated = { ...video, published: !video.published };
     StorageService.saveVideo(updated);
     refreshData();
-    showNotice(`"${video.title}" ${updated.published ? 'published' : 'saved as draft'}.`);
+    showNotice(`"${video.title}" ${updated.published ? 'published' : 'saved to drafts'}.`);
   };
 
-  // Inquiry Management
-  const handleUpdateInquiry = (id: string, status: ProjectInquiry['status']) => {
-    StorageService.updateInquiryStatus(id, status);
-    refreshData();
-    showNotice(`Inquiry status updated to ${status}.`);
-  };
-
-  const handleDeleteInquiry = (id: string) => {
-    if (confirm('Delete this inquiry record?')) {
-      StorageService.deleteInquiry(id);
-      refreshData();
-      showNotice('Inquiry record deleted.');
+  // Profile avatar upload
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          const updated = { ...profile, avatarUrl: reader.result };
+          setProfile(updated);
+          StorageService.saveProfile(updated);
+          refreshData();
+          showNotice('Channel avatar updated from your device!');
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  // Password Change
-  const handleChangePassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPassError('');
-    setPassSuccess('');
-
-    const acc = StorageService.getAdminAccount();
-    if (currentPass !== acc.passwordHash) {
-      setPassError('Current password is incorrect.');
-      return;
+  // Profile banner upload
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          const updated = { ...profile, bannerUrl: reader.result };
+          setProfile(updated);
+          StorageService.saveProfile(updated);
+          refreshData();
+          showNotice('Channel banner updated from your device!');
+        }
+      };
+      reader.readAsDataURL(file);
     }
-    if (newPass.length < 6) {
-      setPassError('New password must be at least 6 characters.');
-      return;
-    }
-    if (newPass !== confirmPass) {
-      setPassError('New passwords do not match.');
-      return;
-    }
-
-    StorageService.setAdminPassword(newPass);
-    setCurrentPass('');
-    setNewPass('');
-    setConfirmPass('');
-    setPassSuccess('Administrator password updated successfully!');
-    refreshData();
   };
 
   const totalViews = videos.reduce((acc, v) => acc + (v.views || 0), 0);
@@ -182,66 +252,44 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const pendingInquiries = inquiries.filter((i) => i.status === 'new').length;
 
   return (
-    <div className="min-h-screen bg-[#1f1f1f] text-white flex flex-col font-sans">
+    <div className="min-h-screen bg-[#1f1f1f] text-white flex flex-col font-sans select-none">
       
-      {/* 1. YOUTUBE STUDIO TOP HEADER */}
-      <header className="h-14 bg-[#282828] border-b border-[#3f3f3f] px-4 flex items-center justify-between gap-4 sticky top-0 z-40 select-none">
+      {/* 1. TOP STUDIO BAR (DIRECT /zero ENTRY - NO PASSWORD REQUIRED) */}
+      <header className="h-14 bg-[#282828] border-b border-[#3f3f3f] px-4 flex items-center justify-between gap-4 sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          {/* Studio Brand Icon */}
           <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
             <svg className="w-7 h-5 fill-[#ff0000]" viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg">
               <path d="M27.4 3.1c-.3-1.2-1.2-2.1-2.4-2.4C22.9 0 14 0 14 0S5.1 0 3 .7C1.8 1 0.9 1.9.6 3.1 0 5.2 0 10 0 10s0 4.8.6 6.9c.3 1.2 1.2 2.1 2.4 2.4 2.1.7 11 .7 11 .7s8.9 0 11-.7c1.2-.3 2.1-1.2 2.4-2.4.6-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z" />
               <polygon points="11.2,14.3 18.5,10 11.2,5.7" fill="#ffffff" />
             </svg>
-            <span className="text-lg font-bold tracking-tight text-white">Studio</span>
+            <span className="text-lg font-bold tracking-tight text-white">Zero Studio</span>
           </div>
-          <span className="hidden sm:inline-block text-[11px] bg-red-600/30 text-red-400 border border-red-500/40 px-2 py-0.5 rounded font-mono">
-            Admin Panel
+          <span className="text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono">
+            /zero Direct Admin
           </span>
         </div>
 
-        {/* Center Search Studio */}
-        <div className="hidden md:flex items-center w-full max-w-md bg-[#1f1f1f] border border-[#3f3f3f] rounded-full px-3 py-1.5 text-xs text-neutral-300">
-          <Search className="w-3.5 h-3.5 text-neutral-400 mr-2" />
-          <input
-            type="text"
-            placeholder="Search across your channel videos and projects..."
-            className="w-full bg-transparent focus:outline-none text-white text-xs"
-          />
-        </div>
-
-        {/* Right Studio Actions */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              setEditingVideo(null);
-              setIsAddModalOpen(true);
-            }}
+            onClick={openNewVideoModal}
             className="px-3.5 py-1.5 rounded-full bg-[#ff0000] hover:bg-[#cc0000] text-white text-xs font-semibold flex items-center gap-1.5 shadow"
           >
-            <Upload className="w-3.5 h-3.5" />
-            <span>Create / Upload</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Upload Video</span>
           </button>
 
           <button
             onClick={onExitAdmin}
             className="px-3 py-1.5 rounded-lg bg-[#383838] hover:bg-[#484848] text-xs font-medium text-white flex items-center gap-1.5"
+            title="Return to public website"
           >
-            <span>View Channel</span>
+            <span>Exit to Website</span>
             <ExternalLink className="w-3.5 h-3.5" />
-          </button>
-
-          <button
-            onClick={onLogout}
-            className="p-1.5 rounded-full hover:bg-[#383838] text-neutral-400 hover:text-white"
-            title="Sign out of Studio"
-          >
-            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </header>
 
-      {/* Notice Alert Toast */}
+      {/* Notice Toast */}
       {notice && (
         <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-xl text-xs font-semibold shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-2 ${
           notice.type === 'error' ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'
@@ -251,48 +299,55 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
       )}
 
-      {/* 2. MAIN STUDIO LAYOUT */}
+      {/* 2. MAIN STUDIO WORKSPACE */}
       <div className="flex-1 flex w-full">
         
-        {/* Left Studio Navigation Rail */}
-        <aside className="w-60 bg-[#282828] border-r border-[#3f3f3f] flex flex-col shrink-0 select-none">
-          {/* Creator Profile Summary */}
+        {/* Left Studio Sidebar Navigation */}
+        <aside className="w-60 bg-[#282828] border-r border-[#3f3f3f] flex flex-col shrink-0">
           <div className="p-4 border-b border-[#3f3f3f] flex flex-col items-center text-center">
             <img
               src={profile.avatarUrl}
               alt={profile.displayName}
-              className="w-20 h-20 rounded-full object-cover border-2 border-neutral-600 mb-2"
+              className="w-16 h-16 rounded-full object-cover border-2 border-neutral-600 mb-2"
             />
             <h4 className="font-bold text-sm text-white truncate max-w-full">{profile.displayName}</h4>
             <span className="text-xs text-neutral-400">{profile.handle}</span>
-            <span className="text-[11px] text-emerald-400 mt-1 font-mono">{profile.subscribersCount} Subscribers</span>
           </div>
 
-          {/* Studio Navigation Links */}
           <nav className="flex-1 p-2 space-y-0.5 text-xs font-medium overflow-y-auto no-scrollbar">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                activeTab === 'dashboard' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard</span>
-            </button>
-
             <button
               onClick={() => setActiveTab('content')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors ${
                 activeTab === 'content' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
               }`}
             >
-              <div className="flex items-center gap-3.5">
+              <div className="flex items-center gap-3">
                 <Film className="w-4 h-4" />
-                <span>Content (Videos)</span>
+                <span>All Videos & Shorts</span>
               </div>
               <span className="bg-[#1f1f1f] text-neutral-300 px-1.5 py-0.5 rounded font-mono text-[10px]">
                 {videos.length}
               </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('customization')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
+                activeTab === 'customization' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
+              }`}
+            >
+              <Sliders className="w-4 h-4" />
+              <span>Channel & Branding</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('categories')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
+                activeTab === 'categories' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>Pill Categories</span>
             </button>
 
             <button
@@ -301,7 +356,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 activeTab === 'inquiries' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
               }`}
             >
-              <div className="flex items-center gap-3.5">
+              <div className="flex items-center gap-3">
                 <Inbox className="w-4 h-4" />
                 <span>Client Inquiries</span>
               </div>
@@ -313,188 +368,60 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('analytics')}
-              className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                activeTab === 'analytics' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
+              onClick={() => setActiveTab('dashboard')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
+                activeTab === 'dashboard' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
               }`}
             >
-              <BarChart2 className="w-4 h-4" />
-              <span>Analytics</span>
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Overview Metrics</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('customization')}
-              className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                activeTab === 'customization' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
+              onClick={() => setActiveTab('storage')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors ${
+                activeTab === 'storage' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
               }`}
             >
-              <Sliders className="w-4 h-4" />
-              <span>Customization</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-left transition-colors ${
-                activeTab === 'settings' ? 'bg-[#383838] text-[#ff0000] font-bold' : 'text-neutral-300 hover:bg-[#383838] hover:text-white'
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-              <span>Settings & Admin</span>
+              <Database className="w-4 h-4 text-emerald-400" />
+              <span>Database & Storage Info</span>
             </button>
           </nav>
 
-          {/* Admin Email pill at bottom */}
           <div className="p-3 border-t border-[#3f3f3f] text-[11px] text-neutral-400">
-            <div>Signed in as:</div>
-            <strong className="text-white truncate block">{adminAccount.email}</strong>
+            <span className="text-emerald-400 font-semibold block">● Direct /zero Session Active</span>
+            <span>Zero login friction</span>
           </div>
         </aside>
 
-        {/* Right Main Studio Workspace Area */}
+        {/* Right Main Panel */}
         <main className="flex-1 bg-[#1f1f1f] p-4 sm:p-6 overflow-y-auto">
           
-          {/* TAB 1: CHANNEL DASHBOARD */}
-          {activeTab === 'dashboard' && (
-            <div className="max-w-6xl space-y-6">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Channel dashboard</h1>
-
-              {/* 3 Analytics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Latest Video Performance Card */}
-                <div className="bg-[#282828] border border-[#3f3f3f] rounded-xl p-4 space-y-3">
-                  <h3 className="text-sm font-bold text-white">Latest video performance</h3>
-                  {videos[0] && (
-                    <div>
-                      <div className="aspect-video w-full rounded-lg overflow-hidden bg-neutral-900 mb-2">
-                        <img src={videos[0].thumbnailUrl} alt={videos[0].title} className="w-full h-full object-cover" />
-                      </div>
-                      <h4 className="text-xs font-semibold text-white line-clamp-1">{videos[0].title}</h4>
-                      <div className="mt-2 text-xs space-y-1 text-neutral-300">
-                        <div className="flex justify-between">
-                          <span>Ranking by views:</span>
-                          <strong>1 of {videos.length}</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Views:</span>
-                          <strong className="font-mono">{formatViews(videos[0].views)}</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Likes:</span>
-                          <strong className="font-mono">{videos[0].likes}</strong>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Channel Analytics */}
-                <div className="bg-[#282828] border border-[#3f3f3f] rounded-xl p-4 space-y-3">
-                  <h3 className="text-sm font-bold text-white">Channel analytics</h3>
-                  <div className="space-y-1 text-xs">
-                    <span className="text-neutral-400">Current subscribers</span>
-                    <div className="text-2xl font-bold text-white">{profile.subscribersCount}</div>
-                    <span className="text-emerald-400 text-[11px]">+4,210 in last 28 days</span>
-                  </div>
-
-                  <div className="pt-3 border-t border-[#3f3f3f] space-y-2 text-xs">
-                    <span className="text-neutral-400 font-semibold block">Summary (Lifetime)</span>
-                    <div className="flex justify-between text-neutral-300">
-                      <span>Total Views:</span>
-                      <strong className="font-mono text-white">{formatViews(totalViews)}</strong>
-                    </div>
-                    <div className="flex justify-between text-neutral-300">
-                      <span>Total Likes:</span>
-                      <strong className="font-mono text-white">{formatViews(totalLikes)}</strong>
-                    </div>
-                    <div className="flex justify-between text-neutral-300">
-                      <span>Published Videos:</span>
-                      <strong className="font-mono text-white">{videos.filter(v => v.published).length}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Latest Inquiries / Leads */}
-                <div className="bg-[#282828] border border-[#3f3f3f] rounded-xl p-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-sm font-bold text-white">Client briefs & inquiries</h3>
-                    <span className="text-xs text-amber-400 font-bold">{pendingInquiries} new</span>
-                  </div>
-
-                  <div className="space-y-2 text-xs">
-                    {inquiries.slice(0, 2).map((inq) => (
-                      <div key={inq.id} className="p-2.5 rounded bg-[#1f1f1f] border border-[#383838]">
-                        <div className="flex justify-between font-semibold text-white">
-                          <span>{inq.name}</span>
-                          <span className="text-emerald-400 font-mono">{inq.budgetRange}</span>
-                        </div>
-                        <p className="text-neutral-400 mt-1 line-clamp-1">{inq.message}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => setActiveTab('inquiries')}
-                    className="w-full mt-2 py-1.5 bg-[#383838] hover:bg-[#484848] text-xs font-semibold rounded text-white"
-                  >
-                    View All Inquiries ({inquiries.length})
-                  </button>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => {
-                    setEditingVideo(null);
-                    setIsAddModalOpen(true);
-                  }}
-                  className="px-4 py-2 bg-[#ff0000] hover:bg-[#cc0000] rounded-lg text-xs font-bold text-white flex items-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Upload New Video</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('content')}
-                  className="px-4 py-2 bg-[#282828] hover:bg-[#383838] rounded-lg text-xs font-semibold text-white border border-[#3f3f3f]"
-                >
-                  Manage Content Library
-                </button>
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className="px-4 py-2 bg-[#282828] hover:bg-[#383838] rounded-lg text-xs font-semibold text-white border border-[#3f3f3f]"
-                >
-                  Admin Credentials & Password
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: CHANNEL CONTENT (YOUTUBE STUDIO CONTENT TABLE) */}
+          {/* TAB 1: ALL VIDEOS & SHORTS */}
           {activeTab === 'content' && (
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight">Channel content</h1>
-                  <p className="text-xs text-neutral-400">Manage, edit, publish, and delete videos and Shorts.</p>
+                  <h1 className="text-xl font-bold tracking-tight">Videos & Shorts Management</h1>
+                  <p className="text-xs text-neutral-400">
+                    Upload from local device, embed YouTube cleanly without logos, or paste Drive links.
+                  </p>
                 </div>
                 <button
-                  onClick={() => {
-                    setEditingVideo(null);
-                    setIsAddModalOpen(true);
-                  }}
-                  className="px-4 py-2 rounded-lg bg-[#ff0000] hover:bg-[#cc0000] text-white text-xs font-bold flex items-center gap-1.5"
+                  onClick={openNewVideoModal}
+                  className="px-4 py-2 rounded-lg bg-[#ff0000] hover:bg-[#cc0000] text-white text-xs font-bold flex items-center gap-1.5 self-start"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Video</span>
+                  <span>Upload / Add Video</span>
                 </button>
               </div>
 
-              {/* Table */}
+              {/* Video List */}
               <div className="bg-[#282828] border border-[#3f3f3f] rounded-xl overflow-hidden text-xs">
                 <div className="grid grid-cols-12 gap-3 p-3 border-b border-[#3f3f3f] text-neutral-400 font-bold uppercase tracking-wider text-[11px]">
-                  <div className="col-span-6">Video</div>
-                  <div className="col-span-2">Visibility</div>
-                  <div className="col-span-2">Views / Likes</div>
+                  <div className="col-span-6">Video / Project</div>
+                  <div className="col-span-2">Format</div>
+                  <div className="col-span-2">Status</div>
                   <div className="col-span-2 text-right">Actions</div>
                 </div>
 
@@ -509,12 +436,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div className="min-w-0">
                           <h4 className="font-semibold text-white truncate text-xs">{vid.title}</h4>
                           <span className="text-[11px] text-neutral-400 block line-clamp-1">{vid.description}</span>
-                          <span className={`inline-block text-[9px] uppercase font-bold px-1.5 py-0.2 rounded mt-1 ${
-                            vid.videoType === 'short' ? 'bg-red-500/20 text-red-400' : 'bg-neutral-800 text-neutral-300'
-                          }`}>
-                            {vid.videoType}
-                          </span>
+                          <span className="text-[10px] text-neutral-400 font-mono mt-0.5 block">{formatViews(vid.views)} · {vid.likes} likes</span>
                         </div>
+                      </div>
+
+                      <div className="col-span-2">
+                        <span className={`inline-block text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                          vid.videoType === 'short' ? 'bg-red-500/20 text-red-400' : 'bg-neutral-800 text-neutral-300'
+                        }`}>
+                          {vid.videoType === 'short' ? '9:16 Short' : '16:9 Video'}
+                        </span>
                       </div>
 
                       <div className="col-span-2">
@@ -528,26 +459,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </button>
                       </div>
 
-                      <div className="col-span-2 text-neutral-300 font-mono">
-                        <div>{formatViews(vid.views)}</div>
-                        <div className="text-[10px] text-neutral-400">{vid.likes} likes</div>
-                      </div>
-
                       <div className="col-span-2 flex items-center justify-end gap-2">
                         <button
-                          onClick={() => {
-                            setEditingVideo(vid);
-                            setIsAddModalOpen(true);
-                          }}
+                          onClick={() => openEditVideoModal(vid)}
                           className="p-1.5 rounded hover:bg-[#484848] text-neutral-300 hover:text-white"
-                          title="Edit"
+                          title="Edit video"
                         >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteVideo(vid.id, vid.title)}
                           className="p-1.5 rounded hover:bg-red-900/40 text-red-400"
-                          title="Delete"
+                          title="Delete video"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -559,91 +482,68 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB 3: CLIENT INQUIRIES */}
-          {activeTab === 'inquiries' && (
-            <div className="space-y-4">
-              <div>
-                <h1 className="text-xl font-bold tracking-tight">Client project inquiries</h1>
-                <p className="text-xs text-neutral-400">Review project proposals submitted through YouTube Hire action.</p>
-              </div>
-
-              <div className="space-y-3">
-                {inquiries.map((inq) => (
-                  <div key={inq.id} className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl space-y-2 text-xs">
-                    <div className="flex justify-between items-center pb-2 border-b border-[#383838]">
-                      <div>
-                        <strong className="text-sm text-white">{inq.name}</strong>
-                        <span className="text-neutral-400 ml-2 font-mono">({inq.email})</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-emerald-400 font-bold">{inq.budgetRange}</span>
-                        <select
-                          value={inq.status}
-                          onChange={(e) => handleUpdateInquiry(inq.id, e.target.value as any)}
-                          className="bg-[#1f1f1f] border border-[#3f3f3f] rounded px-2 py-1 text-xs text-white"
-                        >
-                          <option value="new">New</option>
-                          <option value="reviewed">Reviewed</option>
-                          <option value="contacted">Contacted</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                        <button
-                          onClick={() => handleDeleteInquiry(inq.id)}
-                          className="p-1 text-neutral-400 hover:text-red-400"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-neutral-200 leading-relaxed">{inq.message}</p>
-                    {inq.referenceUrl && (
-                      <div className="text-[11px] text-neutral-400">
-                        Reference: <a href={inq.referenceUrl} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">{inq.referenceUrl}</a>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: ANALYTICS */}
-          {activeTab === 'analytics' && (
-            <div className="space-y-5">
-              <h1 className="text-xl font-bold tracking-tight">Channel analytics & metrics</h1>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl">
-                  <span className="text-neutral-400 block mb-1">Lifetime Views</span>
-                  <div className="text-2xl font-bold text-white font-mono">{formatViews(totalViews)}</div>
-                </div>
-                <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl">
-                  <span className="text-neutral-400 block mb-1">Subscribers</span>
-                  <div className="text-2xl font-bold text-white font-mono">{profile.subscribersCount}</div>
-                </div>
-                <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl">
-                  <span className="text-neutral-400 block mb-1">Total Comments</span>
-                  <div className="text-2xl font-bold text-white font-mono">1,820</div>
-                </div>
-                <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl">
-                  <span className="text-neutral-400 block mb-1">Average View Duration</span>
-                  <div className="text-2xl font-bold text-emerald-400 font-mono">03:12</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 5: CUSTOMIZATION */}
+          {/* TAB 2: CHANNEL & BRANDING */}
           {activeTab === 'customization' && (
-            <div className="space-y-5 max-w-2xl">
-              <h1 className="text-xl font-bold tracking-tight">Channel customization</h1>
+            <div className="max-w-2xl space-y-5">
+              <h1 className="text-xl font-bold tracking-tight">Channel & Website Branding</h1>
+              
+              {/* Avatar and Banner from Device */}
+              <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-300">
+                  Profile Images (Upload Directly from Device)
+                </h3>
+                
+                <div className="flex items-center gap-4">
+                  <img src={profile.avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border border-neutral-600" />
+                  <div>
+                    <span className="text-xs text-neutral-300 block mb-1">Channel Avatar Photo</span>
+                    <input
+                      ref={avatarFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => avatarFileInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-[#383838] hover:bg-[#484848] text-white rounded text-xs flex items-center gap-1.5"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload Avatar from Device</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-[#383838]">
+                  <span className="text-xs text-neutral-300 block mb-1">Channel Panoramic Banner</span>
+                  <input
+                    ref={bannerFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBannerUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => bannerFileInputRef.current?.click()}
+                    className="px-3 py-1.5 bg-[#383838] hover:bg-[#484848] text-white rounded text-xs flex items-center gap-1.5"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Banner from Device</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Info Form */}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   StorageService.saveProfile(profile);
                   refreshData();
-                  showNotice('Channel branding updated!');
+                  showNotice('Channel branding saved!');
                 }}
-                className="space-y-4 text-xs"
+                className="space-y-4 text-xs bg-[#282828] border border-[#3f3f3f] p-4 rounded-xl"
               >
                 <div>
                   <label className="block text-neutral-300 font-semibold mb-1">Channel Name</label>
@@ -651,7 +551,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     type="text"
                     value={profile.displayName}
                     onChange={(e) => setProfile({ ...profile, displayName: e.target.value })}
-                    className="w-full bg-[#282828] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
                   />
                 </div>
 
@@ -661,133 +561,172 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     type="text"
                     value={profile.handle}
                     onChange={(e) => setProfile({ ...profile, handle: e.target.value })}
-                    className="w-full bg-[#282828] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-neutral-300 font-semibold mb-1">Channel Description</label>
+                  <label className="block text-neutral-300 font-semibold mb-1">Subscriber Count Text</label>
+                  <input
+                    type="text"
+                    value={profile.subscribersCount}
+                    onChange={(e) => setProfile({ ...profile, subscribersCount: e.target.value })}
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-neutral-300 font-semibold mb-1">Short Introduction</label>
+                  <input
+                    type="text"
+                    value={profile.shortBio}
+                    onChange={(e) => setProfile({ ...profile, shortBio: e.target.value })}
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-neutral-300 font-semibold mb-1">Full Biography & Creative Approach</label>
                   <textarea
                     rows={4}
                     value={profile.fullBio}
                     onChange={(e) => setProfile({ ...profile, fullBio: e.target.value })}
-                    className="w-full bg-[#282828] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-neutral-300 font-semibold mb-1">Contact Email</label>
+                  <input
+                    type="email"
+                    value={profile.email}
+                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#ff0000] hover:bg-[#cc0000] text-white font-bold rounded-lg"
+                  className="px-5 py-2.5 bg-[#ff0000] hover:bg-[#cc0000] text-white font-bold rounded-lg text-xs"
                 >
-                  Publish Changes
+                  Save Channel Changes
                 </button>
               </form>
             </div>
           )}
 
-          {/* TAB 6: SETTINGS & ADMIN INFO */}
-          {activeTab === 'settings' && (
-            <div className="max-w-3xl space-y-6">
-              <h1 className="text-xl font-bold tracking-tight">YouTube Studio Settings & Admin Info</h1>
+          {/* TAB 3: CATEGORIES */}
+          {activeTab === 'categories' && (
+            <div className="space-y-4 max-w-xl">
+              <h1 className="text-xl font-bold tracking-tight">Category Taxonomy</h1>
+              <p className="text-xs text-neutral-400">These pills appear at the top of the YouTube feed.</p>
+              
+              <div className="space-y-2">
+                {categories.map((cat, idx) => (
+                  <div key={cat.id} className="p-3 bg-[#282828] border border-[#3f3f3f] rounded-lg flex items-center justify-between text-xs">
+                    <span className="font-semibold text-white">{cat.name}</span>
+                    <span className="font-mono text-neutral-400">Order #{idx + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-              {/* Admin Information Card */}
-              <div className="p-5 bg-[#282828] border border-[#3f3f3f] rounded-xl space-y-4 text-xs">
-                <div className="flex items-center justify-between pb-3 border-b border-[#383838]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#ff0000] text-white font-bold flex items-center justify-center">
-                      OP
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-white">Om Patel</h3>
-                      <span className="text-neutral-400">Master Super Administrator</span>
-                    </div>
-                  </div>
-                  <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-full font-semibold border border-emerald-500/20">
-                    Active Authority
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-neutral-400 block mb-0.5">Administrator Email:</span>
-                    <strong className="text-white font-mono">{adminAccount.email}</strong>
-                  </div>
-                  <div>
-                    <span className="text-neutral-400 block mb-0.5">Clearance:</span>
-                    <strong className="text-emerald-400">Full Channel Control & Deployment</strong>
-                  </div>
-                </div>
+          {/* TAB 4: CLIENT INQUIRIES */}
+          {activeTab === 'inquiries' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h1 className="text-xl font-bold tracking-tight">Client Project Inquiries</h1>
+                <span className="text-xs font-mono text-neutral-400">{inquiries.length} total</span>
               </div>
 
-              {/* Change Password */}
-              <form onSubmit={handleChangePassword} className="p-5 bg-[#282828] border border-[#3f3f3f] rounded-xl space-y-4 text-xs">
-                <div className="flex items-center gap-2 font-bold text-sm text-white">
-                  <KeyRound className="w-4 h-4 text-amber-400" />
-                  <span>Update Studio Password</span>
+              <div className="space-y-3">
+                {inquiries.map((inq) => (
+                  <div key={inq.id} className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl space-y-2 text-xs">
+                    <div className="flex justify-between items-center pb-2 border-b border-[#383838]">
+                      <div>
+                        <strong className="text-white text-sm">{inq.name}</strong>
+                        <span className="text-neutral-400 ml-2 font-mono">({inq.email})</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-400 font-mono font-bold">{inq.budgetRange}</span>
+                        <button
+                          onClick={() => {
+                            StorageService.deleteInquiry(inq.id);
+                            refreshData();
+                            showNotice('Inquiry removed');
+                          }}
+                          className="p-1 text-neutral-400 hover:text-red-400"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-neutral-200">{inq.message}</p>
+                    {inq.referenceUrl && (
+                      <div className="text-neutral-400 text-[11px]">
+                        Reference: <a href={inq.referenceUrl} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">{inq.referenceUrl}</a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: OVERVIEW METRICS */}
+          {activeTab === 'dashboard' && (
+            <div className="space-y-5 max-w-4xl">
+              <h1 className="text-xl font-bold tracking-tight">Platform Telemetry</h1>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl">
+                  <span className="text-neutral-400 block mb-1">Total Views</span>
+                  <div className="text-2xl font-bold text-white font-mono">{formatViews(totalViews)}</div>
                 </div>
-
-                {passError && (
-                  <div className="p-2.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-lg">
-                    {passError}
-                  </div>
-                )}
-                {passSuccess && (
-                  <div className="p-2.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-lg">
-                    {passSuccess}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-neutral-400 mb-1">Current Password</label>
-                    <input
-                      type="password"
-                      required
-                      value={currentPass}
-                      onChange={(e) => setCurrentPass(e.target.value)}
-                      placeholder="Current password"
-                      className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-neutral-400 mb-1">New Password</label>
-                    <input
-                      type="password"
-                      required
-                      value={newPass}
-                      onChange={(e) => setNewPass(e.target.value)}
-                      placeholder="Min 6 chars"
-                      className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-neutral-400 mb-1">Confirm New Password</label>
-                    <input
-                      type="password"
-                      required
-                      value={confirmPass}
-                      onChange={(e) => setConfirmPass(e.target.value)}
-                      placeholder="Repeat new"
-                      className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2 text-white"
-                    />
-                  </div>
+                <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl">
+                  <span className="text-neutral-400 block mb-1">Total Likes</span>
+                  <div className="text-2xl font-bold text-white font-mono">{formatViews(totalLikes)}</div>
                 </div>
+                <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl">
+                  <span className="text-neutral-400 block mb-1">Total Videos</span>
+                  <div className="text-2xl font-bold text-white font-mono">{videos.length}</div>
+                </div>
+                <div className="p-4 bg-[#282828] border border-[#3f3f3f] rounded-xl">
+                  <span className="text-neutral-400 block mb-1">Pending Leads</span>
+                  <div className="text-2xl font-bold text-amber-400 font-mono">{pendingInquiries}</div>
+                </div>
+              </div>
+            </div>
+          )}
 
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#ff0000] hover:bg-[#cc0000] text-white font-bold rounded-lg"
-                >
-                  Save New Password
-                </button>
-              </form>
+          {/* TAB 6: DATABASE & STORAGE EXPLANATION (Answers user request: "And tell me this all data will store in database or something else") */}
+          {activeTab === 'storage' && (
+            <div className="max-w-3xl space-y-6 text-xs text-neutral-300">
+              <h1 className="text-xl font-bold tracking-tight text-white">How Your Data is Stored</h1>
 
-              {/* GitHub / Vercel Environment Variables Note */}
-              <div className="p-5 bg-[#282828] border border-[#3f3f3f] rounded-xl space-y-2 text-xs">
-                <h4 className="font-bold text-white">Vercel & GitHub Deployment Variables</h4>
-                <div className="bg-[#191919] p-3 rounded-lg font-mono text-neutral-300 space-y-1">
-                  <div>VITE_APP_URL="https://your-youtube-clone.vercel.app"</div>
-                  <div>ADMIN_EMAIL="ompatel787877@gmail.com"</div>
-                  <div>STORAGE_PROVIDER="supabase-or-local"</div>
+              <div className="p-5 bg-[#282828] border border-[#3f3f3f] rounded-xl space-y-3">
+                <div className="flex items-center gap-2 text-white font-bold text-sm">
+                  <HardDrive className="w-5 h-5 text-emerald-400" />
+                  <span>Current Storage Mode: Zero-Config Client Database (Active)</span>
+                </div>
+                <p className="leading-relaxed">
+                  Right now, all your uploaded videos, thumbnail images, channel customization, likes, comments, and inquiries are stored permanently in the **Browser Storage Engine (`localStorage`)**.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="p-3 bg-[#1f1f1f] rounded-lg border border-[#383838]">
+                    <strong className="text-white block mb-1">✓ Benefits of Local Storage:</strong>
+                    <ul className="space-y-1 list-disc list-inside text-neutral-400">
+                      <li>100% Free forever (no hosting fees or database tier bills).</li>
+                      <li>Instant real-time performance without API latency.</li>
+                      <li>Zero setup required: works right out of the box on Vercel.</li>
+                    </ul>
+                  </div>
+                  <div className="p-3 bg-[#1f1f1f] rounded-lg border border-[#383838]">
+                    <strong className="text-white block mb-1">⚡ Cloud Database Option (Supabase):</strong>
+                    <p className="text-neutral-400">
+                      If you want edits made on your computer to automatically sync live to any visitor visiting from their phone across the world, connect a free Supabase PostgreSQL database using the provided <code className="text-white bg-[#111] px-1 rounded">supabase/schema.sql</code> file!
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -796,115 +735,233 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </main>
       </div>
 
-      {/* CREATE / UPLOAD VIDEO MODAL */}
-      {isAddModalOpen && (
+      {/* 3. UPLOAD / EDIT VIDEO MODAL */}
+      {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="w-full max-w-xl bg-[#282828] border border-[#3f3f3f] rounded-2xl p-6 text-white my-auto shadow-2xl text-xs space-y-4">
+          <div className="w-full max-w-2xl bg-[#282828] border border-[#3f3f3f] rounded-2xl p-6 text-white my-auto shadow-2xl text-xs space-y-4">
             <h3 className="text-base font-bold text-white">
-              {editingVideo ? 'Edit Video Details' : 'Upload Video to Channel'}
+              {editingVideo ? 'Edit Video Details' : 'Upload / Add Video to Portfolio'}
             </h3>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.target as HTMLFormElement;
-                const fd = new FormData(form);
-
-                handleSaveVideo({
-                  id: editingVideo?.id,
-                  title: fd.get('title') as string,
-                  slug: fd.get('slug') as string,
-                  videoType: fd.get('videoType') as VideoType,
-                  videoUrl: fd.get('videoUrl') as string,
-                  thumbnailUrl: fd.get('thumbnailUrl') as string,
-                  duration: fd.get('duration') as string,
-                  description: fd.get('description') as string,
-                  published: fd.get('published') === 'on',
-                });
-              }}
-              className="space-y-3"
-            >
-              <div>
-                <label className="block text-neutral-400 mb-1">Title (Required)</label>
-                <input
-                  name="title"
-                  required
-                  defaultValue={editingVideo?.title || ''}
-                  placeholder="Add a title that describes your video"
-                  className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              
+              {/* Title & Slug */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-neutral-400 mb-1">Video Format / Type</label>
-                  <select
-                    name="videoType"
-                    defaultValue={editingVideo?.videoType || 'long'}
-                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white text-xs"
-                  >
-                    <option value="long">Video (16:9)</option>
-                    <option value="short">Shorts (9:16)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-neutral-400 mb-1">Duration (mm:ss)</label>
+                  <label className="block text-neutral-300 font-semibold mb-1">Video Title *</label>
                   <input
-                    name="duration"
-                    defaultValue={editingVideo?.duration || '03:45'}
-                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white text-xs font-mono"
+                    type="text"
+                    required
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                    placeholder="e.g. Hypercar Night Drive Film"
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-neutral-300 font-semibold mb-1">Custom Slug</label>
+                  <input
+                    type="text"
+                    value={formSlug}
+                    onChange={(e) => setFormSlug(e.target.value)}
+                    placeholder="auto-generated-from-title"
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white font-mono"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-neutral-400 mb-1">Video File URL (Direct MP4 or YouTube embed link)</label>
+              {/* Format & Duration */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-neutral-300 font-semibold mb-1">Video Format</label>
+                  <select
+                    value={formType}
+                    onChange={(e) => setFormType(e.target.value as VideoType)}
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                  >
+                    <option value="long">Video (16:9 Landscape)</option>
+                    <option value="short">Shorts (9:16 Vertical)</option>
+                    <option value="featured_project">Commercial Showcase</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-neutral-300 font-semibold mb-1">Duration (mm:ss)</label>
+                  <input
+                    type="text"
+                    value={formDuration}
+                    onChange={(e) => setFormDuration(e.target.value)}
+                    placeholder="03:45"
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-neutral-300 font-semibold mb-1">Category</label>
+                  <select
+                    value={formCategory}
+                    onChange={(e) => setFormCategory(e.target.value)}
+                    className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white"
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Video Source (File upload from device OR YouTube clean link) */}
+              <div className="p-3 bg-[#1f1f1f] border border-[#383838] rounded-xl space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="font-semibold text-white flex items-center gap-1.5">
+                    <Film className="w-4 h-4 text-[#ff0000]" />
+                    <span>Video Stream Source</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormVideoSource('url')}
+                      className={`px-2.5 py-1 rounded text-[11px] font-semibold ${
+                        formVideoSource === 'url' ? 'bg-[#ff0000] text-white' : 'bg-[#282828] text-neutral-400'
+                      }`}
+                    >
+                      YouTube / Direct Link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormVideoSource('local');
+                        videoFileInputRef.current?.click();
+                      }}
+                      className={`px-2.5 py-1 rounded text-[11px] font-semibold ${
+                        formVideoSource === 'local' ? 'bg-[#ff0000] text-white' : 'bg-[#282828] text-neutral-400'
+                      }`}
+                    >
+                      Upload from Device
+                    </button>
+                  </div>
+                </div>
+
                 <input
-                  name="videoUrl"
+                  ref={videoFileInputRef}
+                  type="file"
+                  accept="video/*"
+                  onChange={handleLocalVideoUpload}
+                  className="hidden"
+                />
+
+                <input
+                  type="text"
                   required
-                  defaultValue={editingVideo?.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'}
-                  className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white text-xs font-mono"
+                  value={formVideoUrl}
+                  onChange={(e) => setFormVideoUrl(e.target.value)}
+                  placeholder="Paste YouTube link (https://youtube.com/watch?v=...) or MP4 video URL"
+                  className="w-full bg-[#282828] border border-[#3f3f3f] rounded-lg p-2 text-white font-mono"
                 />
+                <span className="text-[10px] text-neutral-400 block">
+                  💡 Note: YouTube links are automatically wrapped in a clean, logo-free embed player matching this website!
+                </span>
               </div>
 
-              <div>
-                <label className="block text-neutral-400 mb-1">Thumbnail URL</label>
+              {/* Thumbnail Source (Upload from device OR Google Drive link) */}
+              <div className="p-3 bg-[#1f1f1f] border border-[#383838] rounded-xl space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="font-semibold text-white flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-amber-400" />
+                    <span>Thumbnail Image (Device Upload or Google Drive Link)</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormThumbnailSource('drive_url')}
+                      className={`px-2.5 py-1 rounded text-[11px] font-semibold ${
+                        formThumbnailSource === 'drive_url' ? 'bg-amber-500 text-black' : 'bg-[#282828] text-neutral-400'
+                      }`}
+                    >
+                      Google Drive Link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormThumbnailSource('local');
+                        thumbFileInputRef.current?.click();
+                      }}
+                      className={`px-2.5 py-1 rounded text-[11px] font-semibold ${
+                        formThumbnailSource === 'local' ? 'bg-amber-500 text-black' : 'bg-[#282828] text-neutral-400'
+                      }`}
+                    >
+                      Upload from Device
+                    </button>
+                  </div>
+                </div>
+
                 <input
-                  name="thumbnailUrl"
-                  defaultValue={editingVideo?.thumbnailUrl || ASSETS.heroAutomotive}
-                  className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white text-xs font-mono"
+                  ref={thumbFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLocalThumbnailUpload}
+                  className="hidden"
                 />
+
+                <input
+                  type="text"
+                  required
+                  value={formThumbnailUrl}
+                  onChange={(e) => setFormThumbnailUrl(e.target.value)}
+                  placeholder="Paste Google Drive link (e.g. https://drive.google.com/file/d/.../view) or image link"
+                  className="w-full bg-[#282828] border border-[#3f3f3f] rounded-lg p-2 text-white font-mono"
+                />
+                
+                {/* Thumbnail Preview */}
+                {formThumbnailUrl && (
+                  <div className="mt-2 flex items-center gap-3">
+                    <img
+                      src={formatDriveImageUrl(formThumbnailUrl)}
+                      alt="Thumbnail Preview"
+                      className="w-24 aspect-video rounded-lg object-cover border border-[#3f3f3f]"
+                    />
+                    <span className="text-[11px] text-emerald-400">✓ Thumbnail preview loaded</span>
+                  </div>
+                )}
               </div>
 
+              {/* Description */}
               <div>
-                <label className="block text-neutral-400 mb-1">Description</label>
+                <label className="block text-neutral-300 font-semibold mb-1">Description</label>
                 <textarea
-                  name="description"
                   rows={3}
-                  defaultValue={editingVideo?.description || ''}
-                  placeholder="Tell viewers about your video..."
-                  className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2.5 text-white text-xs resize-none"
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Tell viewers about your editing techniques, cameras, or music used..."
+                  className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2 text-white resize-none"
                 />
               </div>
 
-              <label className="flex items-center gap-2 cursor-pointer pt-1">
+              {/* Client Name */}
+              <div>
+                <label className="block text-neutral-300 font-semibold mb-1">Client or Brand (Optional)</label>
+                <input
+                  type="text"
+                  value={formClient}
+                  onChange={(e) => setFormClient(e.target.value)}
+                  placeholder="e.g. Apex Automotive, Nike, Personal Showreel"
+                  className="w-full bg-[#1f1f1f] border border-[#3f3f3f] rounded-lg p-2 text-white"
+                />
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  name="published"
-                  defaultChecked={editingVideo ? editingVideo.published : true}
+                  checked={formPublished}
+                  onChange={(e) => setFormPublished(e.target.checked)}
                   className="w-4 h-4 rounded text-red-600"
                 />
-                <span className="text-neutral-200">Set visibility to Public</span>
+                <span className="text-neutral-200">Set visibility to Public on website</span>
               </label>
 
+              {/* Modal Actions */}
               <div className="flex justify-end gap-2 pt-3 border-t border-[#3f3f3f]">
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                    setEditingVideo(null);
-                  }}
+                  onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 rounded-lg text-neutral-400 hover:text-white"
                 >
                   Cancel
@@ -913,7 +970,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="submit"
                   className="px-5 py-2 rounded-lg bg-[#ff0000] hover:bg-[#cc0000] text-white font-bold"
                 >
-                  {editingVideo ? 'Save Changes' : 'Upload Video'}
+                  {editingVideo ? 'Update Video' : 'Add to Portfolio'}
                 </button>
               </div>
             </form>

@@ -314,16 +314,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="space-y-0.5 mt-1">
           <button
             onClick={() => {
-              onNavigate('admin');
-              onCloseMobile();
-            }}
-            className="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
-          >
-            <SlidersHorizontal className="w-5 h-5 text-red-500" />
-            <span className="font-semibold text-white">YouTube Studio (Admin)</span>
-          </button>
-          <button
-            onClick={() => {
               onNavigate('contact');
               onCloseMobile();
             }}

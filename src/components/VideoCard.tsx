@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MoreVertical, Clock, Bookmark, Share2, CheckCircle2, Play } from 'lucide-react';
 import { VideoItem, Category } from '../types';
-import { formatViews, formatRelativeTime } from '../utils/format';
+import { formatViews, formatRelativeTime, formatDriveImageUrl } from '../utils/format';
 import { StorageService } from '../services/storage';
 
 interface VideoCardProps {
@@ -44,7 +44,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
       <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-[#212121]">
         {!imageError && video.thumbnailUrl ? (
           <img
-            src={video.thumbnailUrl}
+            src={formatDriveImageUrl(video.thumbnailUrl)}
             alt={video.title}
             onError={() => setImageError(true)}
             referrerPolicy="no-referrer"

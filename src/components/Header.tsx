@@ -30,7 +30,7 @@ interface HeaderProps {
   onOpenHireModal: () => void;
   onNavigate: (view: string, param?: string) => void;
   currentView: string;
-  isAdmin: boolean;
+  isAdmin?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -42,7 +42,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenHireModal,
   onNavigate,
   currentView,
-  isAdmin,
 }) => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -97,7 +96,7 @@ export const Header: React.FC<HeaderProps> = ({
       detail: 'Sarah Jenkins submitted a brief ($5,000 - $10,000 tier)',
       time: '2 hours ago',
       unread: true,
-      action: () => onNavigate('admin')
+      action: () => onOpenHireModal()
     },
     {
       id: 'n2',
@@ -281,16 +280,6 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={() => {
                   setIsCreateMenuOpen(false);
-                  onNavigate('admin');
-                }}
-                className="w-full px-4 py-2.5 hover:bg-[#383838] text-left flex items-center gap-2.5 font-medium"
-              >
-                <Upload className="w-4 h-4 text-neutral-300" />
-                <span>Upload Video (Studio)</span>
-              </button>
-              <button
-                onClick={() => {
-                  setIsCreateMenuOpen(false);
                   onOpenHireModal();
                 }}
                 className="w-full px-4 py-2.5 hover:bg-[#383838] text-left flex items-center gap-2.5 font-medium"
@@ -353,26 +342,6 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* YouTube Studio / Admin Access Button */}
-        <button
-          onClick={() => onNavigate(currentView === 'admin' ? 'home' : 'admin')}
-          className={`p-2 rounded-full transition-colors flex items-center gap-1 text-xs font-semibold ${
-            currentView === 'admin'
-              ? 'bg-[#ff0000] text-white'
-              : 'hover:bg-[#272727] text-neutral-300 hover:text-white'
-          }`}
-          title={currentView === 'admin' ? 'Exit Studio' : 'YouTube Studio / Admin'}
-        >
-          {isAdmin ? (
-            <SlidersHorizontal className="w-5 h-5 text-emerald-400" />
-          ) : (
-            <Lock className="w-5 h-5" />
-          )}
-          <span className="hidden xl:inline text-xs">
-            {currentView === 'admin' ? 'Exit Studio' : 'Studio'}
-          </span>
-        </button>
-
         {/* User Channel Avatar & Menu */}
         <div className="relative">
           <button
@@ -421,16 +390,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onClick={() => {
                     setIsUserMenuOpen(false);
-                    onNavigate('admin');
-                  }}
-                  className="w-full px-4 py-2.5 hover:bg-[#383838] text-left flex items-center gap-3"
-                >
-                  <SlidersHorizontal className="w-4 h-4 text-red-500" />
-                  <span>YouTube Studio (Admin)</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
                     onOpenHireModal();
                   }}
                   className="w-full px-4 py-2.5 hover:bg-[#383838] text-left flex items-center gap-3"
@@ -438,12 +397,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <Sparkles className="w-4 h-4 text-amber-400" />
                   <span>Hire Editor / Client Inquiries</span>
                 </button>
-              </div>
-
-              <div className="border-t border-[#3f3f3f] pt-1 mt-1">
-                <div className="px-4 py-2 text-[11px] text-neutral-400">
-                  Administrator: <strong className="text-neutral-200">ompatel787877@gmail.com</strong>
-                </div>
               </div>
             </div>
           )}

@@ -11,6 +11,7 @@ import {
   Share2
 } from 'lucide-react';
 import { CreatorProfile, VideoItem, Category, SiteSettings } from '../types';
+import { formatDriveImageUrl } from '../utils/format';
 import { VideoCard } from './VideoCard';
 import { ShortsCard } from './ShortsCard';
 import { StorageService } from '../services/storage';
@@ -52,7 +53,7 @@ export const ProfileChannelPage: React.FC<ProfileChannelPageProps> = ({
       {/* 1. CHANNEL PANORAMIC BANNER */}
       <div className="relative w-full h-36 sm:h-52 md:h-64 rounded-3xl overflow-hidden bg-neutral-900 border border-[#272727]">
         <img
-          src={profile.bannerUrl || profile.avatarUrl}
+          src={formatDriveImageUrl(profile.bannerUrl || profile.avatarUrl)}
           alt="Channel Banner"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover filter brightness-[0.8]"
@@ -64,7 +65,7 @@ export const ProfileChannelPage: React.FC<ProfileChannelPageProps> = ({
         {/* Avatar */}
         <div className="w-24 h-24 sm:w-36 sm:h-36 rounded-full overflow-hidden border-2 border-[#272727] bg-neutral-800 shrink-0">
           <img
-            src={profile.avatarUrl}
+            src={formatDriveImageUrl(profile.avatarUrl)}
             alt={profile.displayName}
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover"

@@ -1,7 +1,7 @@
 import React from 'react';
 import { MoreVertical, Flame, Play } from 'lucide-react';
 import { VideoItem } from '../types';
-import { formatViews } from '../utils/format';
+import { formatViews, formatDriveImageUrl } from '../utils/format';
 
 interface ShortsCardProps {
   video: VideoItem;
@@ -16,7 +16,7 @@ export const ShortsCard: React.FC<ShortsCardProps> = ({ video, onSelectShort }) 
     >
       {/* Thumbnail */}
       <img
-        src={video.thumbnailUrl}
+        src={formatDriveImageUrl(video.thumbnailUrl)}
         alt={video.title}
         referrerPolicy="no-referrer"
         className="w-full h-full object-cover"
