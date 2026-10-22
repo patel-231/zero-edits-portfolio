@@ -21,7 +21,7 @@ import {
   Copy
 } from 'lucide-react';
 import { VideoItem, Category, CreatorProfile, SiteSettings, CommentItem } from '../types';
-import { formatViews, formatRelativeTime, formatDriveImageUrl, getCleanYouTubeEmbedUrl } from '../utils/format';
+import { formatViews, formatRelativeTime, formatDriveImageUrl, getCleanYouTubeEmbedUrl, resolveVideoPlayback } from '../utils/format';
 import { StorageService } from '../services/storage';
 
 interface VideoWatchPageProps {
@@ -133,24 +133,30 @@ export const VideoWatchPage: React.FC<VideoWatchPageProps> = ({
       {isTheaterMode && (
         <div className="w-full mb-6">
           <div className="relative aspect-[21/9] min-h-[380px] max-h-[70vh] w-full rounded-2xl overflow-hidden bg-black shadow-2xl">
-            {video.videoUrl.endsWith('.mp4') || video.videoUrl.startsWith('blob:') || video.videoUrl.startsWith('data:') ? (
-              <video
-                src={video.videoUrl}
-                poster={formatDriveImageUrl(video.posterUrl || video.thumbnailUrl)}
-                controls
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <iframe
-                src={getCleanYouTubeEmbedUrl(video.videoUrl) || video.videoUrl.replace('watch?v=', 'embed/')}
-                title={video.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="w-full h-full border-0"
-              />
-            )}
+            {(() => {
+              const pb = resolveVideoPlayback(video.videoUrl);
+              if (pb.type === 'youtube' || pb.type === 'drive' || pb.type === 'vimeo') {
+                return (
+                  <iframe
+                    src={pb.embedUrl}
+                    title={video.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="w-full h-full border-0"
+                  />
+                );
+              }
+              return (
+                <video
+                  src={pb.directUrl}
+                  poster={formatDriveImageUrl(video.posterUrl || video.thumbnailUrl)}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              );
+            })()}
             
             {/* Custom Portfolio Watermark Over Clean Player */}
             <div className="absolute top-4 left-4 z-20 pointer-events-none flex items-center gap-2 bg-black/75 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-semibold border border-white/10 shadow-lg">
@@ -177,24 +183,30 @@ export const VideoWatchPage: React.FC<VideoWatchPageProps> = ({
           {/* Default 16:9 Cinema Player (when not in theater mode) */}
           {!isTheaterMode && (
             <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-2xl group">
-              {video.videoUrl.endsWith('.mp4') || video.videoUrl.startsWith('blob:') || video.videoUrl.startsWith('data:') ? (
-                <video
-                  src={video.videoUrl}
-                  poster={formatDriveImageUrl(video.posterUrl || video.thumbnailUrl)}
-                  controls
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <iframe
-                  src={getCleanYouTubeEmbedUrl(video.videoUrl) || video.videoUrl.replace('watch?v=', 'embed/')}
-                  title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="w-full h-full border-0"
-                />
-              )}
+              {(() => {
+                const pb = resolveVideoPlayback(video.videoUrl);
+                if (pb.type === 'youtube' || pb.type === 'drive' || pb.type === 'vimeo') {
+                  return (
+                    <iframe
+                      src={pb.embedUrl}
+                      title={video.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
+                  );
+                }
+                return (
+                  <video
+                    src={pb.directUrl}
+                    poster={formatDriveImageUrl(video.posterUrl || video.thumbnailUrl)}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                );
+              })()}
 
               {/* Custom Portfolio Watermark Over Clean Player */}
               <div className="absolute top-3 left-3 z-10 pointer-events-none flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[11px] font-semibold border border-white/10 shadow-md">

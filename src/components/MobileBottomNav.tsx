@@ -14,18 +14,18 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 }) => {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0f0f0f] border-t border-[#272727] h-12 px-2 flex items-center justify-around pb-safe">
-      {/* Home */}
+      {/* Portfolio Home */}
       <button
         onClick={() => onNavigate('home')}
         className={`flex flex-col items-center justify-center flex-1 h-full ${
           currentView === 'home' ? 'text-white' : 'text-neutral-400'
         }`}
       >
-        <Home className={`w-5 h-5 ${currentView === 'home' ? 'fill-current' : ''}`} />
-        <span className="text-[10px] mt-0.5 font-medium">Home</span>
+        <Home className={`w-5 h-5 ${currentView === 'home' ? 'fill-current text-[#ff0000]' : ''}`} />
+        <span className="text-[10px] mt-0.5 font-medium">Portfolio</span>
       </button>
 
-      {/* Shorts */}
+      {/* Shorts / Reels */}
       <button
         onClick={() => onNavigate('shorts')}
         className={`flex flex-col items-center justify-center flex-1 h-full ${
@@ -33,30 +33,19 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         }`}
       >
         <Flame className={`w-5 h-5 ${currentView === 'shorts' ? 'text-red-500 fill-red-500' : ''}`} />
-        <span className="text-[10px] mt-0.5 font-medium">Shorts</span>
+        <span className="text-[10px] mt-0.5 font-medium">Reels</span>
       </button>
 
-      {/* Center (+) Create button */}
+      {/* Center Hire / Quote CTA Button */}
       <button
         onClick={onOpenCreate}
-        className="flex items-center justify-center w-10 h-10 rounded-full border border-neutral-600 bg-[#222222] text-white active:scale-95 transition-transform"
-        title="Create or Inquire"
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-[#ff0000] hover:bg-[#cc0000] text-white shadow-lg active:scale-95 transition-transform"
+        title="Hire Editor / Get a Quote"
       >
-        <Plus className="w-6 h-6" />
+        <span className="text-xs font-bold">Hire</span>
       </button>
 
-      {/* Subscriptions */}
-      <button
-        onClick={() => onNavigate('subscriptions')}
-        className={`flex flex-col items-center justify-center flex-1 h-full ${
-          currentView === 'subscriptions' ? 'text-white' : 'text-neutral-400'
-        }`}
-      >
-        <Tv2 className="w-5 h-5" />
-        <span className="text-[10px] mt-0.5 font-medium">Subscriptions</span>
-      </button>
-
-      {/* You */}
+      {/* About The Editor */}
       <button
         onClick={() => onNavigate('profile')}
         className={`flex flex-col items-center justify-center flex-1 h-full ${
@@ -64,7 +53,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         }`}
       >
         <User className="w-5 h-5" />
-        <span className="text-[10px] mt-0.5 font-medium">You</span>
+        <span className="text-[10px] mt-0.5 font-medium">About</span>
       </button>
     </nav>
   );

@@ -128,11 +128,11 @@ export const Header: React.FC<HeaderProps> = ({
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Authentic YouTube Logo */}
+        {/* Portfolio Brand with Authentic YouTube Aesthetic */}
         <button
           onClick={() => onNavigate('home')}
-          className="flex items-center gap-1 focus:outline-none group select-none"
-          title="YouTube Home"
+          className="flex items-center gap-2 focus:outline-none group select-none"
+          title="Zero Edits Portfolio"
         >
           <div className="flex items-center">
             <svg
@@ -143,12 +143,12 @@ export const Header: React.FC<HeaderProps> = ({
               <path d="M27.4 3.1c-.3-1.2-1.2-2.1-2.4-2.4C22.9 0 14 0 14 0S5.1 0 3 .7C1.8 1 0.9 1.9.6 3.1 0 5.2 0 10 0 10s0 4.8.6 6.9c.3 1.2 1.2 2.1 2.4 2.4 2.1.7 11 .7 11 .7s8.9 0 11-.7c1.2-.3 2.1-1.2 2.4-2.4.6-2.1.6-6.9.6-6.9s0-4.8-.6-6.9z" />
               <polygon points="11.2,14.3 18.5,10 11.2,5.7" fill="#ffffff" />
             </svg>
-            <div className="flex items-start ml-1">
-              <span className="text-lg sm:text-xl font-bold tracking-tighter text-white font-sans">
-                YouTube
+            <div className="flex items-center ml-1.5 gap-1.5">
+              <span className="text-base sm:text-lg font-bold tracking-tight text-white font-sans uppercase">
+                {profile.displayName || 'ZERO EDITS'}
               </span>
-              <span className="text-[10px] text-neutral-400 font-medium ml-1 mt-0.5 tracking-normal">
-                US
+              <span className="text-[10px] bg-[#272727] text-neutral-300 font-semibold px-1.5 py-0.5 rounded border border-neutral-700">
+                PORTFOLIO
               </span>
             </div>
           </div>
@@ -260,36 +260,15 @@ export const Header: React.FC<HeaderProps> = ({
           <Search className="w-5 h-5" />
         </button>
 
-        {/* Create (+) Video Button with dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setIsCreateMenuOpen(!isCreateMenuOpen);
-              setIsNotificationsOpen(false);
-              setIsUserMenuOpen(false);
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#272727] hover:bg-[#383838] text-sm font-semibold text-white transition-colors"
-            title="Create"
-          >
-            <Video className="w-4 h-4" />
-            <span className="hidden sm:inline text-xs">+ Create</span>
-          </button>
-
-          {isCreateMenuOpen && (
-            <div className="absolute right-0 top-11 w-48 bg-[#282828] border border-[#3f3f3f] rounded-xl shadow-2xl py-1 z-50 text-xs text-white animate-in fade-in zoom-in-95 duration-150">
-              <button
-                onClick={() => {
-                  setIsCreateMenuOpen(false);
-                  onOpenHireModal();
-                }}
-                className="w-full px-4 py-2.5 hover:bg-[#383838] text-left flex items-center gap-2.5 font-medium"
-              >
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Request Custom Project</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Hire Editor / Quote CTA Button */}
+        <button
+          onClick={onOpenHireModal}
+          className="px-3.5 py-1.5 rounded-full bg-[#ff0000] hover:bg-[#cc0000] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-95"
+          title="Book Video Editing Project"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Hire Editor</span>
+        </button>
 
         {/* Notifications Bell with working Drawer */}
         <div className="relative">

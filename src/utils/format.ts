@@ -53,12 +53,43 @@ export function formatDriveImageUrl(url: string): string {
 }
 
 /**
- * Extracts video ID from any YouTube link (shorts, watch, youtu.be, embed)
+ * Extracts Google Drive file ID
+ */
+export function extractDriveFileId(url: string): string | null {
+  if (!url || !url.includes('drive.google.com')) return null;
+  const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (match1 && match1[1]) return match1[1];
+  const match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match2 && match2[1]) return match2[1];
+  return null;
+}
+
+/**
+ * Extracts video ID from any YouTube link (shorts, watch, youtu.be, embed, mobile)
  */
 export function extractYouTubeId(url: string): string | null {
   if (!url) return null;
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/);
-  return match ? match[1] : null;
+  const cleanUrl = url.trim();
+
+  // Handle youtu.be/ID
+  const shortMatch = cleanUrl.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (shortMatch && shortMatch[1]) return shortMatch[1];
+
+  // Handle youtube.com/shorts/ID
+  const shortsMatch = cleanUrl.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+  if (shortsMatch && shortsMatch[1]) return shortsMatch[1];
+
+  // Handle youtube.com/embed/ID
+  const embedMatch = cleanUrl.match(/\/embed\/([a-zA-Z0-9_-]{11})/);
+  if (embedMatch && embedMatch[1]) return embedMatch[1];
+
+  // Handle watch?v=ID or other query params
+  const watchMatch = cleanUrl.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (watchMatch && watchMatch[1]) return watchMatch[1];
+
+  // Fallback pattern
+  const generalMatch = cleanUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([\w-]{11})/);
+  return generalMatch ? generalMatch[1] : null;
 }
 
 /**
@@ -68,6 +99,42 @@ export function getCleanYouTubeEmbedUrl(url: string): string | null {
   const videoId = extractYouTubeId(url);
   if (!videoId) return null;
   return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&showinfo=0&disablekb=0&playsinline=1&enablejsapi=1`;
+}
+
+/**
+ * Resolves any video URL into embed type and playback URL
+ */
+export interface VideoPlaybackInfo {
+  type: 'youtube' | 'drive' | 'vimeo' | 'direct';
+  embedUrl?: string;
+  directUrl?: string;
+}
+
+export function resolveVideoPlayback(url: string): VideoPlaybackInfo {
+  if (!url) {
+    return { type: 'direct', directUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' };
+  }
+
+  // 1. YouTube
+  const ytEmbed = getCleanYouTubeEmbedUrl(url);
+  if (ytEmbed) {
+    return { type: 'youtube', embedUrl: ytEmbed };
+  }
+
+  // 2. Google Drive video
+  const driveId = extractDriveFileId(url);
+  if (driveId) {
+    return { type: 'drive', embedUrl: `https://drive.google.com/file/d/${driveId}/preview` };
+  }
+
+  // 3. Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return { type: 'vimeo', embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&badge=0&autopause=0&player_id=0&app_id=58479` };
+  }
+
+  // 4. Direct video (MP4, WebM, blob, data URL, or external host)
+  return { type: 'direct', directUrl: url };
 }
 
 export function getAccentClasses(accent: string = 'red') {

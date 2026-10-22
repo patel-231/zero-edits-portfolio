@@ -8,20 +8,16 @@ export const ASSETS = {
   creatorAvatar: '/src/assets/images/creator_avatar_editor_1792601743062.jpg',
 };
 
-// YouTube authentic category pills
+// Video editing portfolio category filters
 export const INITIAL_CATEGORIES: Category[] = [
-  { id: 'cat-all', name: 'All', slug: 'all', displayOrder: 0 },
-  { id: 'cat-shorts', name: 'Shorts', slug: 'shorts', displayOrder: 1 },
-  { id: 'cat-video-editing', name: 'Video Editing', slug: 'video-editing', displayOrder: 2 },
-  { id: 'cat-davinci', name: 'DaVinci Resolve', slug: 'davinci-resolve', displayOrder: 3 },
-  { id: 'cat-cinematic', name: 'Cinematic Films', slug: 'cinematic', displayOrder: 4 },
-  { id: 'cat-automotive', name: 'Automotive', slug: 'automotive', displayOrder: 5 },
-  { id: 'cat-color-grading', name: 'Color Grading', slug: 'color-grading', displayOrder: 6 },
-  { id: 'cat-after-effects', name: 'Motion Graphics', slug: 'motion-graphics', displayOrder: 7 },
-  { id: 'cat-documentaries', name: 'Documentaries', slug: 'documentary', displayOrder: 8 },
-  { id: 'cat-gear', name: 'Cameras & Gear', slug: 'gear', displayOrder: 9 },
-  { id: 'cat-music-videos', name: 'Commercials', slug: 'commercials', displayOrder: 10 },
-  { id: 'cat-sound', name: 'Sound Design', slug: 'sound-design', displayOrder: 11 },
+  { id: 'cat-all', name: 'All Work', slug: 'all', displayOrder: 0 },
+  { id: 'cat-shorts', name: 'Shorts & Reels', slug: 'shorts', displayOrder: 1 },
+  { id: 'cat-commercials', name: 'Commercials & Ads', slug: 'commercials', displayOrder: 2 },
+  { id: 'cat-color-grading', name: 'Color Grading', slug: 'color-grading', displayOrder: 3 },
+  { id: 'cat-documentaries', name: 'Documentary & Travel', slug: 'documentary', displayOrder: 4 },
+  { id: 'cat-youtube', name: 'YouTube Retainers', slug: 'youtube-edits', displayOrder: 5 },
+  { id: 'cat-sound', name: 'Sound Design', slug: 'sound-design', displayOrder: 6 },
+  { id: 'cat-music', name: 'Music Videos', slug: 'music-videos', displayOrder: 7 },
 ];
 
 export const INITIAL_COMMENTS: CommentItem[] = [
@@ -336,17 +332,17 @@ export const INITIAL_PROFILE: CreatorProfile = {
 };
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  siteName: 'YouTube',
-  tagline: 'Broadcast Yourself',
-  logoText: 'YouTube',
+  siteName: 'Zero Edits',
+  tagline: 'Senior Commercial Video Editor & Master Colorist',
+  logoText: 'Zero Edits',
   accentColor: 'red',
   theme: 'dark',
   heroVideoId: 'vid-1',
-  footerText: '© 2026 YouTube LLC · Google AI Studio Portfolio Edition',
+  footerText: '© 2026 Zero Edits · Professional Commercial Post-Production & Color Grading Studio',
   contactSettings: {
     enableInquiries: true,
-    directEmail: 'alexvance.edits@gmail.com',
-    whatsappNumber: '+15553829014',
+    directEmail: 'ompatel787877@gmail.com',
+    whatsappNumber: '+1 (555) 382-9014',
     bookingNotice: 'Currently accepting select commercial and episodic editing projects.'
   },
   sectionVisibility: {
@@ -397,7 +393,23 @@ export class StorageService {
   }
 
   static saveVideos(videos: VideoItem[]): void {
-    localStorage.setItem(KEYS.VIDEOS, JSON.stringify(videos));
+    try {
+      localStorage.setItem(KEYS.VIDEOS, JSON.stringify(videos));
+    } catch (e) {
+      console.warn('LocalStorage save failed, stripping heavy base64 items', e);
+      try {
+        const trimmed = videos.map((v) => ({
+          ...v,
+          thumbnailUrl:
+            v.thumbnailUrl && v.thumbnailUrl.startsWith('data:') && v.thumbnailUrl.length > 300000
+              ? ASSETS.heroAutomotive
+              : v.thumbnailUrl,
+        }));
+        localStorage.setItem(KEYS.VIDEOS, JSON.stringify(trimmed));
+      } catch (err) {
+        console.error('Storage quota reached', err);
+      }
+    }
   }
 
   static getVideoBySlug(slug: string): VideoItem | undefined {

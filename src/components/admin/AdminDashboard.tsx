@@ -26,7 +26,8 @@ import {
 } from 'lucide-react';
 import { VideoItem, Category, CreatorProfile, SiteSettings, ProjectInquiry, VideoType } from '../../types';
 import { StorageService, ASSETS } from '../../services/storage';
-import { formatViews, formatRelativeTime, formatDriveImageUrl, getCleanYouTubeEmbedUrl } from '../../utils/format';
+import { formatViews, formatRelativeTime, formatDriveImageUrl, getCleanYouTubeEmbedUrl, resolveVideoPlayback } from '../../utils/format';
+import { IndexedDbMediaService } from '../../services/indexedDbMedia';
 
 interface AdminDashboardProps {
   onExitAdmin: () => void;
@@ -123,13 +124,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Handle local video file upload from device
-  const handleLocalVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLocalVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const objectUrl = URL.createObjectURL(file);
-      setFormVideoUrl(objectUrl);
-      setFormVideoSource('local');
-      showNotice(`Local video "${file.name}" loaded from device!`);
+      try {
+        const fileKey = `video-blob-${Date.now()}`;
+        const objectUrl = await IndexedDbMediaService.saveMediaBlob(fileKey, file);
+        setFormVideoUrl(objectUrl);
+        setFormVideoSource('local');
+        showNotice(`Local video "${file.name}" saved to persistent media storage!`);
+      } catch (err) {
+        const objectUrl = URL.createObjectURL(file);
+        setFormVideoUrl(objectUrl);
+        setFormVideoSource('local');
+        showNotice(`Local video "${file.name}" loaded!`);
+      }
     }
   };
 
@@ -853,12 +862,52 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   required
                   value={formVideoUrl}
                   onChange={(e) => setFormVideoUrl(e.target.value)}
-                  placeholder="Paste YouTube link (https://youtube.com/watch?v=...) or MP4 video URL"
+                  placeholder="Paste YouTube link, Google Drive link, or MP4 URL"
                   className="w-full bg-[#282828] border border-[#3f3f3f] rounded-lg p-2 text-white font-mono"
                 />
-                <span className="text-[10px] text-neutral-400 block">
-                  💡 Note: YouTube links are automatically wrapped in a clean, logo-free embed player matching this website!
-                </span>
+
+                {/* Live Video Test Preview */}
+                {formVideoUrl && (
+                  <div className="p-3 bg-[#161616] border border-[#333333] rounded-xl space-y-2 mt-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-emerald-400 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <span>Live Test Player (Verify Playback Before Saving)</span>
+                      </span>
+                      <span className="text-[10px] text-neutral-400 font-mono uppercase bg-[#222] px-2 py-0.5 rounded">
+                        {resolveVideoPlayback(formVideoUrl).type}
+                      </span>
+                    </div>
+
+                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-[#2f2f2f]">
+                      {(() => {
+                        const pb = resolveVideoPlayback(formVideoUrl);
+                        if (pb.type === 'youtube' || pb.type === 'drive' || pb.type === 'vimeo') {
+                          return (
+                            <iframe
+                              src={pb.embedUrl}
+                              title="Live Test Preview"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full border-0"
+                            />
+                          );
+                        }
+                        return (
+                          <video
+                            src={pb.directUrl}
+                            controls
+                            playsInline
+                            className="w-full h-full object-cover"
+                          />
+                        );
+                      })()}
+                    </div>
+                    <span className="text-[10px] text-neutral-400 block">
+                      ✓ Supported: YouTube (watch/shorts/embed), Google Drive video share links, Vimeo, or local device files.
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Thumbnail Source (Upload from device OR Google Drive link) */}

@@ -1,27 +1,18 @@
 import React from 'react';
 import { 
-  Home, 
-  Flame, 
-  Tv2, 
-  User, 
-  History, 
-  Clock, 
-  ThumbsUp, 
   Film, 
-  FolderGit2, 
-  Compass, 
-  Music2, 
-  Gamepad2, 
-  Newspaper, 
-  Trophy, 
-  Podcast, 
-  SlidersHorizontal, 
-  HelpCircle, 
-  Settings, 
-  Flag, 
-  MessageSquarePlus,
-  ChevronRight,
-  Sparkles
+  Flame, 
+  Sparkles, 
+  User, 
+  Sliders, 
+  Award, 
+  Tv2, 
+  Mail, 
+  ExternalLink,
+  Laptop,
+  CheckCircle2,
+  Calendar,
+  MessageSquareQuote
 } from 'lucide-react';
 import { CreatorProfile, SiteSettings } from '../types';
 
@@ -44,26 +35,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   onCloseMobile,
 }) => {
-  const subscriptions = [
-    { name: 'Alex Vance Film', avatar: profile.avatarUrl, hasUnread: true },
-    { name: 'Terra Vision Cinema', avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=Terra', hasUnread: false },
-    { name: 'KAI Brand Lab', avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=KAI', hasUnread: true },
-    { name: 'Cinecom.net', avatar: 'https://api.dicebear.com/7.x/identicon/svg?seed=Cinecom', hasUnread: false },
-  ];
-
-  // If collapsed on desktop, render the YouTube compact icon rail
+  // If collapsed on desktop, render the YouTube-style compact rail
   if (collapsed) {
     return (
-      <aside className="hidden md:flex flex-col items-center w-[72px] shrink-0 h-[calc(100vh-3.5rem)] sticky top-14 bg-[#0f0f0f] py-3 space-y-5 border-r border-[#272727] z-30 select-none">
+      <aside className="hidden md:flex flex-col items-center w-[72px] shrink-0 h-[calc(100vh-3.5rem)] sticky top-14 bg-[#0f0f0f] py-3 space-y-4 border-r border-[#272727] z-30 select-none">
         <button
           onClick={() => onNavigate('home')}
           className={`flex flex-col items-center justify-center w-16 py-3 rounded-xl transition-colors ${
             currentView === 'home' ? 'text-white' : 'text-neutral-400 hover:text-white hover:bg-[#272727]'
           }`}
-          title="Home"
+          title="All Projects"
         >
-          <Home className={`w-6 h-6 ${currentView === 'home' ? 'text-white fill-current' : ''}`} />
-          <span className="text-[10px] mt-1 font-medium tracking-tight">Home</span>
+          <Film className={`w-5 h-5 ${currentView === 'home' ? 'text-[#ff0000]' : ''}`} />
+          <span className="text-[10px] mt-1 font-medium tracking-tight">Portfolio</span>
         </button>
 
         <button
@@ -71,21 +55,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className={`flex flex-col items-center justify-center w-16 py-3 rounded-xl transition-colors ${
             currentView === 'shorts' ? 'text-white' : 'text-neutral-400 hover:text-white hover:bg-[#272727]'
           }`}
-          title="Shorts"
+          title="Short-Form & Reels"
         >
-          <Flame className={`w-6 h-6 ${currentView === 'shorts' ? 'text-red-500 fill-red-500' : ''}`} />
-          <span className="text-[10px] mt-1 font-medium tracking-tight">Shorts</span>
+          <Flame className={`w-5 h-5 ${currentView === 'shorts' ? 'text-[#ff0000] fill-[#ff0000]' : ''}`} />
+          <span className="text-[10px] mt-1 font-medium tracking-tight">Reels</span>
         </button>
 
         <button
-          onClick={() => onNavigate('subscriptions')}
-          className={`flex flex-col items-center justify-center w-16 py-3 rounded-xl transition-colors ${
-            currentView === 'subscriptions' ? 'text-white' : 'text-neutral-400 hover:text-white hover:bg-[#272727]'
-          }`}
-          title="Subscriptions"
+          onClick={() => onNavigate('category', 'color-grading')}
+          className="flex flex-col items-center justify-center w-16 py-3 rounded-xl transition-colors text-neutral-400 hover:text-white hover:bg-[#272727]"
+          title="Color Grading"
         >
-          <Tv2 className="w-6 h-6" />
-          <span className="text-[10px] mt-1 font-medium tracking-tight truncate">Subscriptions</span>
+          <Sliders className="w-5 h-5 text-amber-400" />
+          <span className="text-[10px] mt-1 font-medium tracking-tight">Color</span>
         </button>
 
         <button
@@ -93,248 +75,185 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className={`flex flex-col items-center justify-center w-16 py-3 rounded-xl transition-colors ${
             currentView === 'profile' ? 'text-white' : 'text-neutral-400 hover:text-white hover:bg-[#272727]'
           }`}
-          title="You"
+          title="About the Editor"
         >
-          <User className="w-6 h-6" />
-          <span className="text-[10px] mt-1 font-medium tracking-tight">You</span>
+          <User className="w-5 h-5" />
+          <span className="text-[10px] mt-1 font-medium tracking-tight">About</span>
+        </button>
+
+        <button
+          onClick={() => onNavigate('contact')}
+          className="flex flex-col items-center justify-center w-16 py-3 rounded-xl transition-colors text-neutral-400 hover:text-amber-400 hover:bg-[#272727]"
+          title="Hire Editor"
+        >
+          <Sparkles className="w-5 h-5 text-amber-400" />
+          <span className="text-[10px] mt-1 font-medium tracking-tight">Hire</span>
         </button>
       </aside>
     );
   }
 
-  // Full Expanded YouTube Sidebar
+  // Full Expanded YouTube-Style Portfolio Sidebar
   const sidebarContent = (
     <div className="h-full flex flex-col py-2 px-3 overflow-y-auto space-y-3 no-scrollbar text-sm select-none">
-      {/* SECTION 1: CORE NAVIGATION */}
-      <div className="space-y-0.5">
-        <button
-          onClick={() => {
-            onNavigate('home');
-            onCloseMobile();
-          }}
-          className={`w-full flex items-center gap-6 px-3 py-2.5 rounded-xl font-medium transition-colors text-left ${
-            currentView === 'home'
-              ? 'bg-[#272727] text-white font-bold'
-              : 'text-[#f1f1f1] hover:bg-[#272727]'
-          }`}
-        >
-          <Home className={`w-5 h-5 ${currentView === 'home' ? 'fill-current' : ''}`} />
-          <span>Home</span>
-        </button>
-
-        <button
-          onClick={() => {
-            onNavigate('shorts');
-            onCloseMobile();
-          }}
-          className={`w-full flex items-center gap-6 px-3 py-2.5 rounded-xl font-medium transition-colors text-left ${
-            currentView === 'shorts'
-              ? 'bg-[#272727] text-white font-bold'
-              : 'text-[#f1f1f1] hover:bg-[#272727]'
-          }`}
-        >
-          <Flame className={`w-5 h-5 ${currentView === 'shorts' ? 'text-red-500 fill-red-500' : ''}`} />
-          <span>Shorts</span>
-        </button>
-
-        <button
-          onClick={() => {
-            onNavigate('subscriptions');
-            onCloseMobile();
-          }}
-          className={`w-full flex items-center gap-6 px-3 py-2.5 rounded-xl font-medium transition-colors text-left ${
-            currentView === 'subscriptions'
-              ? 'bg-[#272727] text-white font-bold'
-              : 'text-[#f1f1f1] hover:bg-[#272727]'
-          }`}
-        >
-          <Tv2 className="w-5 h-5" />
-          <span>Subscriptions</span>
-        </button>
-      </div>
-
-      <div className="border-t border-[#272727]" />
-
-      {/* SECTION 2: YOU / LIBRARY */}
-      <div className="space-y-0.5">
-        <button
-          onClick={() => {
-            onNavigate('profile');
-            onCloseMobile();
-          }}
-          className="w-full flex items-center justify-between px-3 py-1.5 text-base font-bold text-white hover:text-neutral-300"
-        >
-          <span className="flex items-center gap-1.5">
-            <span>You</span>
-            <ChevronRight className="w-4 h-4 text-neutral-400" />
-          </span>
-        </button>
-
-        <button
-          onClick={() => {
-            onNavigate('profile');
-            onCloseMobile();
-          }}
-          className="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
-        >
-          <User className="w-5 h-5" />
-          <span>Your channel</span>
-        </button>
-
-        <button
-          onClick={() => {
-            onNavigate('history');
-            onCloseMobile();
-          }}
-          className={`w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-left ${
-            currentView === 'history' ? 'bg-[#272727] text-white font-bold' : 'text-neutral-300 hover:text-white hover:bg-[#272727]'
-          }`}
-        >
-          <History className="w-5 h-5" />
-          <span>History</span>
-        </button>
-
-        <button
-          onClick={() => {
-            onNavigate('watch-later');
-            onCloseMobile();
-          }}
-          className={`w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-left ${
-            currentView === 'watch-later' ? 'bg-[#272727] text-white font-bold' : 'text-neutral-300 hover:text-white hover:bg-[#272727]'
-          }`}
-        >
-          <Clock className="w-5 h-5" />
-          <span>Watch Later</span>
-        </button>
-
-        <button
-          onClick={() => {
-            onNavigate('liked-videos');
-            onCloseMobile();
-          }}
-          className={`w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-left ${
-            currentView === 'liked-videos' ? 'bg-[#272727] text-white font-bold' : 'text-neutral-300 hover:text-white hover:bg-[#272727]'
-          }`}
-        >
-          <ThumbsUp className="w-5 h-5" />
-          <span>Liked videos</span>
-        </button>
-      </div>
-
-      <div className="border-t border-[#272727]" />
-
-      {/* SECTION 3: SUBSCRIPTIONS LIST */}
+      
+      {/* SECTION 1: PORTFOLIO SHOWCASE */}
       <div>
-        <h4 className="px-3 py-1.5 text-sm font-bold text-white uppercase tracking-wider">
-          Subscriptions
-        </h4>
-        <div className="space-y-0.5 mt-1">
-          {subscriptions.map((sub) => (
-            <button
-              key={sub.name}
-              onClick={() => {
-                onNavigate('profile');
-                onCloseMobile();
-              }}
-              className="w-full flex items-center gap-4 px-3 py-2 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
-            >
-              <img
-                src={sub.avatar}
-                alt={sub.name}
-                referrerPolicy="no-referrer"
-                className="w-6 h-6 rounded-full object-cover shrink-0"
-              />
-              <span className="truncate flex-1 text-xs">{sub.name}</span>
-              {sub.hasUnread && (
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-t border-[#272727]" />
-
-      {/* SECTION 4: EXPLORE CATEGORIES */}
-      <div>
-        <h4 className="px-3 py-1.5 text-sm font-bold text-white uppercase tracking-wider">
-          Explore
+        <h4 className="px-3 py-1.5 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+          Portfolio
         </h4>
         <div className="space-y-0.5 mt-1">
           <button
             onClick={() => {
-              onNavigate('trending');
+              onNavigate('home');
               onCloseMobile();
             }}
-            className="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
+            className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-xl font-medium transition-colors text-left ${
+              currentView === 'home'
+                ? 'bg-[#272727] text-white font-bold'
+                : 'text-[#f1f1f1] hover:bg-[#272727]'
+            }`}
           >
-            <Compass className="w-5 h-5" />
-            <span>Trending</span>
+            <Film className={`w-5 h-5 ${currentView === 'home' ? 'text-[#ff0000]' : 'text-neutral-400'}`} />
+            <span>All Projects</span>
           </button>
+
           <button
             onClick={() => {
-              onNavigate('music');
+              onNavigate('shorts');
               onCloseMobile();
             }}
-            className="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
+            className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-xl font-medium transition-colors text-left ${
+              currentView === 'shorts'
+                ? 'bg-[#272727] text-white font-bold'
+                : 'text-[#f1f1f1] hover:bg-[#272727]'
+            }`}
           >
-            <Music2 className="w-5 h-5" />
-            <span>Music</span>
+            <Flame className={`w-5 h-5 ${currentView === 'shorts' ? 'text-[#ff0000] fill-[#ff0000]' : 'text-neutral-400'}`} />
+            <span>Shorts & Viral Reels (9:16)</span>
           </button>
+
           <button
             onClick={() => {
-              onNavigate('gaming');
+              onNavigate('category', 'commercials');
               onCloseMobile();
             }}
-            className="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
+            className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
           >
-            <Gamepad2 className="w-5 h-5" />
-            <span>Gaming</span>
+            <Tv2 className="w-5 h-5 text-neutral-400" />
+            <span>Commercials & Brand Ads</span>
           </button>
+
           <button
             onClick={() => {
-              onNavigate('podcasts');
+              onNavigate('category', 'color-grading');
               onCloseMobile();
             }}
-            className="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
+            className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
           >
-            <Podcast className="w-5 h-5" />
-            <span>Podcasts</span>
+            <Sliders className="w-5 h-5 text-amber-400" />
+            <span>Color Grading Breakdowns</span>
           </button>
         </div>
       </div>
 
       <div className="border-t border-[#272727]" />
 
-      {/* SECTION 5: MORE FROM YOUTUBE */}
+      {/* SECTION 2: ABOUT THE EDITOR */}
       <div>
-        <h4 className="px-3 py-1.5 text-sm font-bold text-white uppercase tracking-wider">
-          More from YouTube
+        <h4 className="px-3 py-1.5 text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
+          The Editor
         </h4>
         <div className="space-y-0.5 mt-1">
           <button
             onClick={() => {
-              onNavigate('contact');
+              onNavigate('profile');
               onCloseMobile();
             }}
-            className="w-full flex items-center gap-6 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
+            className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-xl text-left ${
+              currentView === 'profile'
+                ? 'bg-[#272727] text-white font-bold'
+                : 'text-neutral-300 hover:text-white hover:bg-[#272727]'
+            }`}
           >
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <span>Hire Creator / Quote</span>
+            <User className="w-5 h-5 text-neutral-400" />
+            <span>Editor Bio & Showreel</span>
+          </button>
+
+          <button
+            onClick={() => {
+              onNavigate('profile');
+              onCloseMobile();
+            }}
+            className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
+          >
+            <Laptop className="w-5 h-5 text-neutral-400" />
+            <span>Software & Hardware Suite</span>
+          </button>
+
+          <button
+            onClick={() => {
+              onNavigate('profile');
+              onCloseMobile();
+            }}
+            className="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#272727] text-left"
+          >
+            <Award className="w-5 h-5 text-neutral-400" />
+            <span>Editorial Skills & ACES</span>
           </button>
         </div>
       </div>
 
       <div className="border-t border-[#272727]" />
 
-      {/* FOOTER NOTICE */}
-      <div className="px-3 py-3 text-[11px] text-[#717171] leading-relaxed space-y-2">
-        <div>About Press Copyright Contact us Creators Advertise Developers</div>
-        <div>Terms Privacy Policy & Safety How YouTube works Test new features</div>
-        <div className="text-neutral-500 pt-2 font-mono">
-          © 2026 YouTube LLC
+      {/* SECTION 3: CLIENT & HIRE CTA CARD */}
+      <div className="p-3 bg-[#1a1a1a] border border-[#2f2f2f] rounded-2xl space-y-2.5 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-bold text-white text-[11px] tracking-wide uppercase">Open for Bookings</span>
+        </div>
+        <p className="text-neutral-400 text-[11px] leading-relaxed">
+          Need commercial edits, high-retention YouTube storytelling, or cinematic color grading?
+        </p>
+        <button
+          onClick={() => {
+            onNavigate('contact');
+            onCloseMobile();
+          }}
+          className="w-full py-2 bg-[#ff0000] hover:bg-[#cc0000] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow transition-all active:scale-95"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Hire Editor / Quote</span>
+        </button>
+      </div>
+
+      <div className="border-t border-[#272727]" />
+
+      {/* SECTION 4: EDITORIAL STATS */}
+      <div className="px-3 space-y-2 text-xs text-neutral-400">
+        <div className="flex items-center justify-between">
+          <span>Views Generated:</span>
+          <strong className="text-white font-mono">50M+</strong>
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Projects Delivered:</span>
+          <strong className="text-white font-mono">120+</strong>
+        </div>
+        <div className="flex items-center justify-between">
+          <span>Turnaround:</span>
+          <strong className="text-emerald-400 font-mono">24-48 Hours</strong>
         </div>
       </div>
+
+      {/* FOOTER */}
+      <div className="mt-auto pt-3 border-t border-[#272727] px-3 text-[11px] text-neutral-500 space-y-1">
+        <div className="font-semibold text-neutral-400">{profile.displayName || 'Zero Edits'}</div>
+        <div>Senior Commercial Video Editor & Master Colorist</div>
+        <div className="text-[10px] text-neutral-600 pt-1">
+          Crafted with YouTube Dark Design Architecture
+        </div>
+      </div>
+
     </div>
   );
 

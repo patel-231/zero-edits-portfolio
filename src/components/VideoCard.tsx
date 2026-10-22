@@ -108,7 +108,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({
             }}
             className="mt-1 text-xs text-[#aaaaaa] hover:text-[#f1f1f1] flex items-center gap-1 transition-colors"
           >
-            <span className="truncate">{video.channelName}</span>
+            <span className="truncate">{video.clientName ? `Client: ${video.clientName}` : video.channelName}</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-neutral-400 fill-neutral-400/20 shrink-0" />
           </div>
 

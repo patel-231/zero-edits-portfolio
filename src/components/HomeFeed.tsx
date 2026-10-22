@@ -98,8 +98,53 @@ export const HomeFeed: React.FC<HomeFeedProps> = ({
         </button>
       </div>
 
-      <div className="max-w-[1780px] mx-auto px-3 sm:px-6 py-4 space-y-8">
+      <div className="max-w-[1780px] mx-auto px-3 sm:px-6 py-4 space-y-6">
         
+        {/* Editorial Spotlight Banner */}
+        {selectedCategory === 'all' && (
+          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#1c1c1c] via-[#222222] to-[#181818] border border-[#2f2f2f] p-4 sm:p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#ff0000] animate-pulse" />
+                <span className="text-[11px] font-bold text-neutral-400 tracking-wider uppercase">
+                  Featured Video Editing Showreel
+                </span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                Cinematic Commercial Edits, Viral Shorts & Master Color Grading
+              </h1>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Explore commercial campaign cuts, DaVinci Resolve color passes, and rhythmic sound design crafted for brands and top creators worldwide.
+              </p>
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-neutral-300">
+                <span className="text-white font-semibold">50M+ Views Generated</span>
+                <span>•</span>
+                <span>DaVinci Resolve Studio</span>
+                <span>•</span>
+                <span>Premiere Pro</span>
+                <span>•</span>
+                <span className="text-emerald-400 font-semibold">Accepting Commercial Bookings</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+              <button
+                onClick={onOpenHireModal}
+                className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-[#ff0000] hover:bg-[#cc0000] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition-all"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Hire Editor / Quote</span>
+              </button>
+              <button
+                onClick={() => onNavigate('profile')}
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-[#2a2a2a] hover:bg-[#383838] text-white text-xs font-semibold flex items-center justify-center gap-1.5 border border-[#3f3f3f] transition-colors"
+              >
+                <span>About & Gear</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 2. AUTHENTIC YOUTUBE VIDEO GRID (First Row) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-x-4 gap-y-8">
           {mainVideos.slice(0, 4).map((video) => (
